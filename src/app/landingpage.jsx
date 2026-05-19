@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import PageTitle from "./components/PageTitle";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
@@ -11,6 +13,8 @@ import {
 } from "lucide-react";
 import { CATEGORY_GROUPS, EVENT_CATEGORIES } from "../lib/categories";
 import NeobrutalistMarquee from "./components/NeobrutalistMarquee";
+
+const MotionImage = motion(Image);
 
 const navItems = [
   { label: "Services", href: "#services" },
@@ -202,7 +206,9 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <>
+      <PageTitle title="Home" description="EventPro - Wedding & Event Management" />
+      <div className="min-h-screen bg-background text-foreground">
       {/* ── STICKY HEADER ── */}
       <header className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 ${
         scrolled
@@ -288,12 +294,13 @@ export default function Home() {
       <main>
         {/* ═══════════ HERO ═══════════ */}
         <section id="home" className="relative flex min-h-[560px] items-center overflow-hidden md:min-h-[calc(100vh-56px)]">
-          <motion.img
+          <MotionImage
             initial={{ scale: 1.1 }}
             animate={{ scale: 1 }}
             transition={{ duration: 8, ease: "easeOut" }}
             src="/images/Wedding.png" alt="A Pakistani wedding stage with elegant decor"
-            className="absolute inset-0 h-full w-full object-cover"
+            fill priority sizes="100vw"
+            className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#3d2c1f]/85 via-[#3d2c1f]/50 to-transparent" />
           <div className="relative z-10 mx-auto grid w-full max-w-7xl gap-8 px-4 py-16 lg:grid-cols-[1fr_360px] lg:items-end">
@@ -378,7 +385,7 @@ export default function Home() {
                   <Link href={service.href}
                     className="group flex flex-col bg-[#f9f3e8] h-full border-[4px] border-[#c4b096] shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-black/10 hover:border-[#d4af37]">
                     <div className="bg-[#ece6dc] overflow-hidden">
-                      <img src={service.image} alt={service.title} loading="lazy" className="w-full block transition-all duration-700 group-hover:scale-110 group-hover:rotate-0" />
+                      <Image src={service.image} alt={service.title} width={512} height={512} className="w-full block transition-all duration-700 group-hover:scale-110 group-hover:rotate-0" />
                     </div>
                     <div className="flex flex-col p-5 flex-1">
                       <div className="mb-3 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-[#c4975a] transition-colors duration-300 group-hover:text-[#b8894d]">{service.icon}Service</div>
@@ -399,10 +406,11 @@ export default function Home() {
         <FadeIn>
           <section id="makeup" className="bg-[#fcf6ed] py-20">
             <div className="mx-auto grid max-w-7xl gap-10 px-4 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-              <motion.img
+              <MotionImage
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 200 }}
-                src="/images/MakeupStyling.png" alt="Bridal and groom styling" loading="lazy"
+                src="/images/MakeupStyling.png" alt="Bridal and groom styling"
+                width={836} height={470} sizes="(max-width: 1024px) 100vw, 50vw"
                 className="h-[440px] w-full object-cover shadow-lg"
               />
               <div>
@@ -437,10 +445,11 @@ export default function Home() {
                 </div>
                 <div className="mt-8"><CtaLink href="/bookings?category=catering-services">Book Catering</CtaLink></div>
               </div>
-              <motion.img
+              <MotionImage
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 200 }}
-                src="/images/Food.png" alt="Pakistani wedding catering" loading="lazy"
+                src="/images/Food.png" alt="Pakistani wedding catering"
+                width={512} height={280} sizes="(max-width: 1024px) 100vw, 50vw"
                 className="h-[440px] w-full object-cover shadow-lg"
               />
             </div>
@@ -582,9 +591,9 @@ export default function Home() {
                     transition={{ delay: index * 0.06 }}
                     whileHover={{ scale: 1.03 }}
                     className="relative h-56 overflow-hidden rounded-lg cursor-pointer shadow-md"
-                    style={{ backgroundImage: `url(${item.src})`, backgroundSize: "cover", backgroundPosition: "center" }}
                     onClick={() => openLightbox(index)}
                   >
+                    <Image src={item.src} alt={item.label} fill className="object-cover" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />
                     <figcaption className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-4 pt-8 pb-3 transition-all duration-300 hover:pb-5">
                       <div className="text-sm font-black uppercase tracking-[0.12em] text-white">{item.label}</div>
                       <div className="mt-1 text-xs leading-5 text-white/60 line-clamp-2">{item.description}</div>
@@ -617,7 +626,7 @@ export default function Home() {
                     className="flex flex-col items-center"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <img src={gallery[lightboxIndex].src} alt={gallery[lightboxIndex].label} className="max-h-[75vh] max-w-[90vw] object-contain" />
+                    <Image src={gallery[lightboxIndex].src} alt={gallery[lightboxIndex].label} width={1200} height={675} className="max-h-[75vh] max-w-[90vw] object-contain" />
                     <div className="mt-4 text-center">
                       <div className="text-lg font-bold text-white">{gallery[lightboxIndex].label}</div>
                       <div className="mt-1 max-w-lg text-sm leading-6 text-white/65">{gallery[lightboxIndex].description}</div>
@@ -843,5 +852,6 @@ export default function Home() {
         <ChevronUp size={22} />
       </motion.button>
     </div>
+    </>
   );
 }

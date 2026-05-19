@@ -1,8 +1,10 @@
 "use client";
 
+import PageTitle from "../components/PageTitle";
 import { useState } from "react";
 import { Loader2, Send, ArrowLeft, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { contactApi } from "../../lib/api";
 
 export default function EnquiryPage() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
@@ -17,7 +19,6 @@ export default function EnquiryPage() {
     setSubmitting(true);
     setError("");
     try {
-      const { contactApi } = await import("../../lib/api.js");
       await contactApi.send(form);
       setDone(true);
     } catch (err) {
@@ -29,7 +30,9 @@ export default function EnquiryPage() {
 
   if (done) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[#fcf8f2] px-4">
+      <>
+        <PageTitle title="Enquiry" description="Enquiry submitted successfully" />
+        <main className="min-h-screen flex items-center justify-center bg-[#fcf8f2] px-4">
         <div className="w-full max-w-md border-[4px] border-[#c4b096] bg-[#f9f3e8] p-8 text-center shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#d4af37]/20">
             <Sparkles size={28} className="text-[#d4af37]" />
@@ -41,11 +44,14 @@ export default function EnquiryPage() {
           </Link>
         </div>
       </main>
+      </>
     );
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#fcf8f2] px-4 py-12">
+    <>
+      <PageTitle title="Enquiry" description="Submit an event enquiry" />
+      <main className="min-h-screen flex items-center justify-center bg-[#fcf8f2] px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="border-[4px] border-[#c4b096] bg-[#f9f3e8] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
           <div className="text-center">
@@ -90,5 +96,6 @@ export default function EnquiryPage() {
         </div>
       </div>
     </main>
+    </>
   );
 }

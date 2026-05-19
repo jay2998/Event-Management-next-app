@@ -1,5 +1,6 @@
 "use client";
 
+import PageTitle from "../components/PageTitle";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -403,8 +404,6 @@ export default function DashboardPage() {
       } catch {}
     };
     fetchNotifications();
-    const id = setInterval(fetchNotifications, 15000);
-    return () => clearInterval(id);
   }, []);
 
   const todayEvents = useMemo(() =>
@@ -418,15 +417,20 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+      <>
+        <PageTitle title="Dashboard" description="EventPro management dashboard" />
+        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
         <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-[#d4af37]/20 border-t-[#d4af37]" />
         <span className="text-xs font-bold uppercase tracking-[0.14em] text-black/50">Loading your dashboard&hellip;</span>
       </div>
+      </>
     );
   }
 
   return (
-    <main className="px-6 py-6 sm:px-8 bg-gradient-to-br from-[#f7f3ed] via-white to-[#f0ebe3]">
+    <>
+      <PageTitle title="Dashboard" description="EventPro management dashboard" />
+      <main className="px-6 py-6 sm:px-8 bg-gradient-to-br from-[#f7f3ed] via-white to-[#f0ebe3]">
       <div className="mx-auto max-w-[1600px] flex flex-col gap-6">
 
         {/* ═══════ COMPACT HEADER ═══════ */}
@@ -481,9 +485,9 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* ═══════ MAIN GRID: fill remaining space ═══════ */}
+          {/* ═══════ MAIN GRID: fill remaining space ═══════ */}
         {!isCustomer ? (
-          <div className="grid gap-6" style={{ gridTemplateColumns: "1fr 1.8fr 1.8fr 360px", gridTemplateRows: "auto" }}>
+          <div className="grid gap-6 xl:grid-cols-[1fr_1.8fr_1.8fr_320px] lg:grid-cols-2 md:grid-cols-1">
             {/* Col 1: PieChart */}
             <BookingStatusBreakdown bookings={bookings} />
 
@@ -553,5 +557,6 @@ export default function DashboardPage() {
 
       </div>
     </main>
+    </>
   );
 }

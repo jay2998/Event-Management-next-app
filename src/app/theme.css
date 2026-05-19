@@ -102,13 +102,11 @@ input:focus {
 
 input::placeholder { 
   color: var(--app-muted); 
-  text-transform: none;
   letter-spacing: normal;
 }
 
 /* Global label refinement */
 label {
-  text-transform: uppercase;
   letter-spacing: 0.15em;
   font-size: 0.7rem;
   font-weight: 600;

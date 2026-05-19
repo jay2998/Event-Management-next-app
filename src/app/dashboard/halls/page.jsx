@@ -1,5 +1,6 @@
 "use client";
 
+import PageTitle from "../../components/PageTitle";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -38,6 +39,8 @@ export default function VenueManagementPage() {
   const [showVenueForm, setShowVenueForm] = useState(false);
   const [showHallForm, setShowHallForm] = useState(false);
   const [editingVenueId, setEditingVenueId] = useState(null);
+  const [confirmDeleteVenueId, setConfirmDeleteVenueId] = useState(null);
+  const [confirmDeleteHall, setConfirmDeleteHall] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -99,17 +102,16 @@ export default function VenueManagementPage() {
       setShowVenueForm(false);
       loadVenues();
     } catch (err) {
-      alert(err.message || "Operation failed");
+      setError(err.message || "Operation failed");
     }
   };
 
   const deleteVenue = async (id) => {
-    if (!confirm("Deactivate this venue?")) return;
     try {
       await venuesApi.delete(id);
       loadVenues();
     } catch (err) {
-      alert(err.message || "Failed");
+      setError(err.message || "Failed");
     }
   };
 
@@ -132,17 +134,16 @@ export default function VenueManagementPage() {
       setShowHallForm(false);
       loadVenues();
     } catch (err) {
-      alert(err.message || "Operation failed");
+      setError(err.message || "Operation failed");
     }
   };
 
   const deleteHall = async (venueId, hallId) => {
-    if (!confirm("Remove this hall?")) return;
     try {
       await venuesApi.removeHall(venueId, hallId);
       loadVenues();
     } catch (err) {
-      alert(err.message || "Failed");
+      setError(err.message || "Failed");
     }
   };
 
@@ -153,7 +154,7 @@ export default function VenueManagementPage() {
       await venuesApi.setHallSlot(venueId, hallId, { date: selectedDate, slot: selectedSlot, status: nextStatus });
       loadVenues();
     } catch (err) {
-      alert(err.message || "Failed to update slot");
+      setError(err.message || "Failed to update slot");
     }
   };
 
@@ -163,7 +164,7 @@ export default function VenueManagementPage() {
       setSuggestions(res?.data?.data || []);
       setShowSuggestions(true);
     } catch (err) {
-      alert(err.message || "Failed to get suggestions");
+      setError(err.message || "Failed to get suggestions");
     }
   };
 
@@ -189,7 +190,9 @@ export default function VenueManagementPage() {
   })();
 
   return (
-    <main className="min-h-screen bg-[#f7f3ed] px-4 py-6 text-[#171717] sm:px-6 lg:px-8">
+    <>
+      <PageTitle title="Venue Management" description="Manage venues and halls" />
+      <main className="min-h-screen bg-[#f7f3ed] px-4 py-6 text-[#171717] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <Link href="/dashboard" className="mb-5 inline-flex items-center gap-2 text-sm font-extrabold text-[#c4975a] transition-colors hover:text-[#8b7355]">
           <ArrowLeft size={16} /> Back to dashboard
@@ -288,7 +291,7 @@ export default function VenueManagementPage() {
                         className="rounded-lg border-[2.5px] border-[#c4b096] bg-white/80 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-black/60 transition hover:border-[#d4af37]">
                         Edit
                       </button>
-                      <button onClick={(e) => { e.stopPropagation(); deleteVenue(venue._id || venue.id); }}
+                      <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteVenueId(venue._id || venue.id); }}
                         className="rounded-lg border-[2.5px] border-red-200 bg-red-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-red-600 transition hover:bg-red-100">
                         Delete
                       </button>
@@ -355,7 +358,7 @@ export default function VenueManagementPage() {
                                     <Lightbulb size={12} className="inline mr-1" />Find Alternatives
                                   </button>
                                 )}
-                                <button onClick={() => deleteHall(venue._id || venue.id, hallId)}
+                                <button onClick={() => setConfirmDeleteHall({ venueId: venue._id || venue.id, hallId })}
                                   className="rounded-lg border-[2.5px] border-red-200 bg-red-50 px-2 py-1 text-[8px] font-black uppercase tracking-[0.1em] text-red-500 transition hover:bg-red-100">
                                   <X size={12} />
                                 </button>
@@ -511,7 +514,32 @@ export default function VenueManagementPage() {
             </div>
           </div>
         )}
+
+        {confirmDeleteVenueId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setConfirmDeleteVenueId(null)}>
+            <div className="bg-white p-6 border-2 border-[#c4b096] shadow-xl max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+              <p className="text-sm font-bold text-[#3d2c1f] mb-4">Deactivate this venue?</p>
+              <div className="flex gap-3 justify-end">
+                <button onClick={() => setConfirmDeleteVenueId(null)} className="px-4 py-2 text-xs font-bold border-2 border-[#c4b096] bg-white text-black/60 hover:bg-[#f9f3e8]">Cancel</button>
+                <button onClick={() => { deleteVenue(confirmDeleteVenueId); setConfirmDeleteVenueId(null); }} className="px-4 py-2 text-xs font-bold border-2 border-red-400 bg-red-50 text-red-700 hover:bg-red-100">Delete</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {confirmDeleteHall && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setConfirmDeleteHall(null)}>
+            <div className="bg-white p-6 border-2 border-[#c4b096] shadow-xl max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+              <p className="text-sm font-bold text-[#3d2c1f] mb-4">Remove this hall?</p>
+              <div className="flex gap-3 justify-end">
+                <button onClick={() => setConfirmDeleteHall(null)} className="px-4 py-2 text-xs font-bold border-2 border-[#c4b096] bg-white text-black/60 hover:bg-[#f9f3e8]">Cancel</button>
+                <button onClick={() => { deleteHall(confirmDeleteHall.venueId, confirmDeleteHall.hallId); setConfirmDeleteHall(null); }} className="px-4 py-2 text-xs font-bold border-2 border-red-400 bg-red-50 text-red-700 hover:bg-red-100">Delete</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
+    </>
   );
 }

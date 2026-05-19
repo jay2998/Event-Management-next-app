@@ -1,5 +1,6 @@
 "use client";
 
+import PageTitle from "../../components/PageTitle";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -19,6 +20,7 @@ export default function RentalsPage() {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [form, setForm] = useState({
     name: "", description: "", city: "Lahore",
     minimumOrderValue: "", deliveryAvailable: true, deliveryCharges: "",
@@ -93,17 +95,16 @@ export default function RentalsPage() {
       setShowForm(false);
       loadRentals();
     } catch (err) {
-      alert(err.message || "Operation failed");
+      setError(err.message || "Operation failed");
     }
   };
 
   const deleteRental = async (id) => {
-    if (!confirm("Delete this rental?")) return;
     try {
       await rentalsApi.delete(id);
       loadRentals();
     } catch (err) {
-      alert(err.message || "Failed to delete rental");
+      setError(err.message || "Failed to delete rental");
     }
   };
 
@@ -119,7 +120,9 @@ export default function RentalsPage() {
   const totalItems = (rental) => (rental.items || []).reduce((s, i) => s + (i.quantity || 0), 0);
 
   return (
-    <main className="min-h-screen bg-[#f7f3ed] px-4 py-6 text-[#171717] sm:px-6 lg:px-8">
+    <>
+      <PageTitle title="Rental Manager" description="Manage rental inventory" />
+      <main className="min-h-screen bg-[#f7f3ed] px-4 py-6 text-[#171717] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <Link href="/dashboard" className="mb-5 inline-flex items-center gap-2 text-sm font-extrabold text-[#c4975a] transition-colors hover:text-[#8b7355]">
           <ArrowLeft size={16} /> Back to dashboard
@@ -236,7 +239,8 @@ export default function RentalsPage() {
             <p className="text-sm font-bold text-black/50">{search ? "No rentals match your search." : "No rentals yet. Add your first rental service."}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border-[2.5px] border-[#c4b096] bg-[#f9f3e8] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+          <>
+          <div className="hidden md:block overflow-x-auto rounded-2xl border-[2.5px] border-[#c4b096] bg-[#f9f3e8] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b-[2.5px] border-[#c4b096] text-[10px] font-black uppercase tracking-[0.14em] text-black/45">
@@ -271,7 +275,7 @@ export default function RentalsPage() {
                           className="rounded-lg border-[2.5px] border-[#c4b096] bg-white/80 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-black/60 transition hover:border-[#d4af37]">
                           Edit
                         </button>
-                        <button onClick={() => deleteRental(r._id || r.id)}
+                        <button onClick={() => setConfirmDeleteId(r._id || r.id)}
                           className="rounded-lg border-[2.5px] border-red-200 bg-red-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-red-600 transition hover:bg-red-100">
                           Delete
                         </button>
@@ -282,8 +286,43 @@ export default function RentalsPage() {
               </tbody>
             </table>
           </div>
+
+          
+          <div className="md:hidden space-y-3">
+            {filtered.map((r) => (
+              <div key={r._id || r.id} className="rounded-2xl border-[2.5px] border-[#c4b096] bg-[#f9f3e8] p-4 shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-bold text-[#3d2c1f]">{r.name}</span>
+                  <span className={`text-[10px] font-bold ${r.deliveryAvailable !== false ? "text-green-600" : "text-red-500"}`}>{r.deliveryAvailable !== false ? "Delivery Available" : "No Delivery"}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs text-black/60">
+                  <div>City: {r.city}</div>
+                  <div>Items: {totalItems(r)} units / {(r.items || []).length} types</div>
+                  <div>Min Order: {r.minimumOrderValue ? currency.format(r.minimumOrderValue) : "—"}</div>
+                </div>
+                <div className="mt-3 flex gap-2 justify-end">
+                  <button onClick={() => openEdit(r)} className="text-[10px] font-black uppercase tracking-[0.1em] text-[#c4975a]">Edit</button>
+                  <button onClick={() => setConfirmDeleteId(r._id || r.id)} className="text-[10px] font-black uppercase tracking-[0.1em] text-red-600">Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          </>
+        )}
+
+        {confirmDeleteId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setConfirmDeleteId(null)}>
+            <div className="bg-white p-6 border-2 border-[#c4b096] shadow-xl max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+              <p className="text-sm font-bold text-[#3d2c1f] mb-4">Are you sure you want to delete this rental?</p>
+              <div className="flex gap-3 justify-end">
+                <button onClick={() => setConfirmDeleteId(null)} className="px-4 py-2 text-xs font-bold border-2 border-[#c4b096] bg-white text-black/60 hover:bg-[#f9f3e8]">Cancel</button>
+                <button onClick={() => { deleteRental(confirmDeleteId); setConfirmDeleteId(null); }} className="px-4 py-2 text-xs font-bold border-2 border-red-400 bg-red-50 text-red-700 hover:bg-red-100">Delete</button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </main>
+    </>
   );
 }
