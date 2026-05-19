@@ -1,18 +1,14 @@
 :root{
-  /* High-End Royal Wedding & Fine Art Palette */
-  --app-bg1: #fdf8ed;   
-  --app-bg2: #faf6eb;   /* Antique Paper Linen */
-  --app-bg3: #ffffff;   
-
-  --app-text: #1a1a1a;  /* Deep Onyx */
-  --app-muted: #7a7067; 
+  --app-bg1: #fdf8ed;
+  --app-bg2: #faf6eb;
+  --app-bg3: #ffffff;
+  --app-text: #1a1a1a;
+  --app-muted: #7a7067;
   --app-border: #e8e1d5;
-
   --card: rgba(255, 255, 255, 0.95);
   --card-solid: #ffffff;
-
-  --accent: #FFD700;    /* Actual Shimmering Gold */
-  --accent-hover: #E6C200;
+  --accent: #c4975a;
+  --accent-hover: #b8894d;
   --accent-soft: rgba(212, 175, 55, 0.1);
 }
 
@@ -20,23 +16,20 @@ html, body{ height:100%; width: 100%; margin: 0; padding: 0; }
 
 body{
   background-color: var(--app-bg2);
-  background-image: 
+  background-image:
     radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.12), transparent 70%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cfilter id='linen' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23linen)' opacity='0.05'/%3E%3C/svg%3E");
-
   color: var(--app-text);
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* General heading styles for a royal feel */
-h1, h2, h3, h4, h5, h6 { 
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-serif);
   letter-spacing: 0.03em;
   color: inherit;
 }
 
-/* Specific H1 styles: prominent, italic, slightly tighter spacing */
 h1 {
   font-size: 3.5rem;
   font-style: italic;
@@ -47,13 +40,11 @@ h1 {
 
 *{ box-sizing: border-box; }
 
-/* Responsiveness Fixes for components going off-screen */
 main, section, .container, div, .flex {
   max-width: 100%;
   word-wrap: break-word;
 }
 
-/* Allow category lists to wrap without breaking intentional flex-row layouts */
 .flex-nowrap {
   flex-wrap: nowrap !important;
 }
@@ -61,23 +52,6 @@ main, section, .container, div, .flex {
 img, video, canvas, svg {
   max-width: 100%;
   height: auto;
-}
-
-/* Removed aggressive .text-white overrides to restore readability on buttons/dark elements */
-
-/* Elegant Card Styling - scoped to cards, not all bg-white elements */
-.bg-white.card-style {
-  background-color: var(--card);
-  border: 1px solid var(--app-border);
-  box-shadow: 0 15px 40px -15px rgba(212, 175, 55, 0.1);
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.bg-white.card-style:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent);
-  box-shadow: 0 15px 50px -20px rgba(212, 175, 55, 0.15);
 }
 
 input,
@@ -100,25 +74,21 @@ input:focus {
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-input::placeholder { 
-  color: var(--app-muted); 
-  text-transform: none;
+input::placeholder {
+  color: var(--app-muted);
   letter-spacing: normal;
 }
 
-/* Global label refinement */
 label {
-  text-transform: uppercase;
   letter-spacing: 0.15em;
   font-size: 0.7rem;
   font-weight: 600;
   color: var(--app-muted);
 }
 
-/* Royal Decree Card Style */
 .royal-decree {
   border: 4px double #d4af37 !important;
-  background-color: #fffcf5 !important; /* Parchment cream */
+  background-color: #fffcf5 !important;
   box-shadow: 0 25px 60px -20px rgba(212, 175, 55, 0.15) !important;
 }
 

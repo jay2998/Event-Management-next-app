@@ -1,24 +1,13 @@
 "use client";
 
+import PageTitle from "../components/PageTitle";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Mail, Lock, ShieldCheck, Store, User } from "lucide-react";
-
-const ROLES = [
-  { key: "admin", label: "Admin", icon: <ShieldCheck size={16} />, desc: "Full system access, user management, all bookings" },
-  { key: "vendor", label: "Vendor", icon: <Store size={16} />, desc: "Service fulfillment, inventory, order management" },
-  { key: "customer", label: "Customer", icon: <User size={16} />, desc: "My bookings, event planning, invoices" },
-];
-
-const DEMO_CREDENTIALS = {
-  admin: { email: "admin@eventpro.com", password: "admin123" },
-  vendor: { email: "vendor@eventpro.com", password: "vendor123" },
-  customer: { email: "customer@eventpro.com", password: "customer123" },
-};
+import { Loader2, Mail, Lock } from "lucide-react";
+import { authApi } from "../../lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [role, setRole] = useState("admin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,7 +19,6 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const { authApi } = await import("../../lib/api.js");
       const res = await authApi.login({ email, password });
       const payload = res?.data;
       const token = payload?.token || payload?.data?.token || payload?.data?.accessToken;
@@ -41,7 +29,7 @@ export default function LoginPage() {
       window.localStorage.setItem("token", token);
       if (user) window.localStorage.setItem("user", JSON.stringify(user));
 
-      const userRole = user?.role || role;
+      const userRole = user?.role;
       router.push(userRole === "customer" ? "/enquiry" : "/dashboard");
     } catch (err) {
       setError(err?.response?.data?.message || err.message || "Login failed");
@@ -50,20 +38,10 @@ export default function LoginPage() {
     }
   };
 
-  const fillDemo = () => {
-    const creds = DEMO_CREDENTIALS[role];
-    setEmail(creds.email);
-    setPassword(creds.password);
-    setError("");
-  };
-
-  const roleStyles = (key) =>
-    key === role
-      ? "border-[#d4af37] bg-[#f9f3e8] text-[#3d2c1f] shadow-md"
-      : "border-[#e8e0d2] bg-transparent text-black/50 hover:border-[#d4c8b0] hover:text-black/70";
-
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#fcf8f2]">
+    <>
+      <PageTitle title="Login" description="Sign in to your EventPro account" />
+      <main className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#fcf8f2]">
       <div className="w-full max-w-sm space-y-4">
         <div className="border-[4px] border-[#c4b096] bg-[#f9f3e8] p-5 shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
           <div className="text-center">
@@ -73,44 +51,13 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <div className="mt-5 grid grid-cols-3 gap-2">
-            {ROLES.map((r) => (
-              <button
-                key={r.key}
-                type="button"
-                onClick={() => { setRole(r.key); setError(""); }}
-                className={`flex flex-col items-center gap-1 border-[2.5px] px-2 py-3 text-[11px] font-bold uppercase tracking-[0.1em] transition-all duration-300 ${roleStyles(r.key)}`}
-              >
-                {r.icon}
-                {r.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-1.5 text-center text-[10px] text-black/45 italic leading-relaxed">
-            {ROLES.find((r) => r.key === role)?.desc}
-          </div>
-
-          <div className="mt-3 flex items-center justify-between border-[2.5px] border-[#e8e0d2] bg-white px-3 py-2">
-            <span className="text-xs text-black/45">
-              Demo: <span className="font-mono font-bold text-black/70">{DEMO_CREDENTIALS[role].email}</span>
-            </span>
-            <button
-              type="button"
-              onClick={fillDemo}
-              className="text-[11px] font-black uppercase tracking-[0.12em] text-[#c4975a] transition-colors hover:text-[#d4af37]"
-            >
-              Auto-fill
-            </button>
-          </div>
-
           {error && (
             <div className="mt-4 border-[2.5px] border-red-300 bg-red-50 px-4 py-3 text-xs text-red-700">
               {error}
             </div>
           )}
 
-          <form onSubmit={onSubmit} className="mt-3 space-y-2.5">
+          <form onSubmit={onSubmit} className="mt-5 space-y-2.5">
             <label className="block">
               <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-black/60">
                 <Mail size={14} className="text-[#c4975a]" />
@@ -152,7 +99,7 @@ export default function LoginPage() {
                   Signing in...
                 </span>
               ) : (
-                `Enter as ${ROLES.find((r) => r.key === role)?.label}`
+                "Sign In"
               )}
             </button>
           </form>
@@ -175,5 +122,6 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+    </>
   );
 }

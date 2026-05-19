@@ -1,5 +1,6 @@
 "use client";
 
+import PageTitle from "../../../components/PageTitle";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo, useCallback } from "react";
@@ -25,6 +26,7 @@ export default function AccessControlPage() {
   const [tab, setTab] = useState("users");
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [expandedGroups, setExpandedGroups] = useState({});
   const [permDirty, setPermDirty] = useState(false);
@@ -62,7 +64,7 @@ export default function AccessControlPage() {
       await adminApi.updateUser(id, { isActive: !currentActive });
       loadUsers();
     } catch {
-      alert("Failed to update user status");
+      setError("Failed to update user status");
     }
   };
 
@@ -106,7 +108,9 @@ export default function AccessControlPage() {
   }), [users]);
 
   return (
-    <main className="min-h-screen bg-[#f7f3ed] px-4 py-6 text-[#171717] sm:px-6 lg:px-8">
+    <>
+      <PageTitle title="Access Control" description="Manage user access and permissions" />
+      <main className="min-h-screen bg-[#f7f3ed] px-4 py-6 text-[#171717] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <Link href="/dashboard" className="mb-5 inline-flex items-center gap-2 text-sm font-extrabold text-[#c4975a] transition-colors hover:text-[#8b7355]">
           <ArrowLeft size={16} /> Back to dashboard
@@ -153,6 +157,10 @@ export default function AccessControlPage() {
             ))}
           </div>
         </div>
+
+        {error && (
+          <div className="mb-5 rounded-xl border-[2.5px] border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>
+        )}
 
         {tab === "users" ? (
           <>
@@ -327,5 +335,6 @@ export default function AccessControlPage() {
         )}
       </div>
     </main>
+    </>
   );
 }

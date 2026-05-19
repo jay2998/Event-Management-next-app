@@ -1,5 +1,6 @@
 "use client";
 
+import PageTitle from "../../components/PageTitle";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -22,6 +23,7 @@ export default function UsersAdminPage() {
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [form, setForm] = useState({ name: "", email: "", password: "", phone: "", role: "customer" });
 
   useEffect(() => {
@@ -65,22 +67,23 @@ export default function UsersAdminPage() {
       setShowForm(false);
       loadUsers();
     } catch (err) {
-      alert(err.message || "Operation failed");
+      setError(err.message || "Operation failed");
     }
   };
 
   const deleteUser = async (id) => {
-    if (!confirm("Soft-delete this user? They can be restored via the database.")) return;
     try {
       await adminApi.deleteUser(id);
       loadUsers();
     } catch (err) {
-      alert(err.message || "Failed to delete user");
+      setError(err.message || "Failed to delete user");
     }
   };
 
   return (
-    <main className="min-h-screen bg-[#f7f3ed] px-4 py-6 text-[#171717] sm:px-6 lg:px-8">
+    <>
+      <PageTitle title="User Management" description="Manage registered users" />
+      <main className="min-h-screen bg-[#f7f3ed] px-4 py-6 text-[#171717] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <Link href="/dashboard" className="mb-5 inline-flex items-center gap-2 text-sm font-extrabold text-[#c4975a] transition-colors hover:text-[#8b7355]">
           <ArrowLeft size={16} /> Back to dashboard
@@ -150,7 +153,8 @@ export default function UsersAdminPage() {
             <p className="text-sm font-bold text-black/50">No users found.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border border-white/30 bg-white/70 backdrop-blur-md shadow-lg">
+          <>
+          <div className="hidden md:block overflow-x-auto rounded-2xl border border-white/30 bg-white/70 backdrop-blur-md shadow-lg">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-[#e8e1d5] text-[10px] font-black uppercase tracking-[0.14em] text-black/45">
@@ -184,7 +188,7 @@ export default function UsersAdminPage() {
                           className="rounded-lg border border-[#d9d1c4] bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-black/60 transition hover:border-[#b4975a]">
                           Edit
                         </button>
-                        <button onClick={() => deleteUser(u._id || u.id)}
+                        <button onClick={() => setConfirmDeleteId(u._id || u.id)}
                           className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-red-600 transition hover:bg-red-100">
                           Delete
                         </button>
@@ -195,8 +199,43 @@ export default function UsersAdminPage() {
               </tbody>
             </table>
           </div>
+
+          
+          <div className="md:hidden space-y-3">
+            {users.map((u) => (
+              <div key={u._id || u.id} className="rounded-2xl border-[2.5px] border-[#c4b096] bg-[#f9f3e8] p-4 shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-bold text-[#3d2c1f]">{u.name}</span>
+                  <span className={`text-[10px] font-black uppercase tracking-[0.1em] ${u.isActive !== false ? "text-green-600" : "text-red-500"}`}>{u.isActive !== false ? "Active" : "Inactive"}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs text-black/60">
+                  <div>Email: {u.email}</div>
+                  <div>Role: {u.role || "customer"}</div>
+                  <div>Phone: {u.phone || "—"}</div>
+                </div>
+                <div className="mt-3 flex gap-2 justify-end">
+                  <button onClick={() => openEdit(u)} className="text-[10px] font-black uppercase tracking-[0.1em] text-[#c4975a]">Edit</button>
+                  <button onClick={() => setConfirmDeleteId(u._id || u.id)} className="text-[10px] font-black uppercase tracking-[0.1em] text-red-600">Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          </>
+        )}
+
+        {confirmDeleteId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setConfirmDeleteId(null)}>
+            <div className="bg-white p-6 border-2 border-[#c4b096] shadow-xl max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+              <p className="text-sm font-bold text-[#3d2c1f] mb-4">Soft-delete this user? They can be restored via the database.</p>
+              <div className="flex gap-3 justify-end">
+                <button onClick={() => setConfirmDeleteId(null)} className="px-4 py-2 text-xs font-bold border-2 border-[#c4b096] bg-white text-black/60 hover:bg-[#f9f3e8]">Cancel</button>
+                <button onClick={() => { deleteUser(confirmDeleteId); setConfirmDeleteId(null); }} className="px-4 py-2 text-xs font-bold border-2 border-red-400 bg-red-50 text-red-700 hover:bg-red-100">Delete</button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </main>
+    </>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import PageTitle from "./components/PageTitle";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
@@ -11,6 +13,8 @@ import {
 } from "lucide-react";
 import { CATEGORY_GROUPS, EVENT_CATEGORIES } from "../lib/categories";
 import NeobrutalistMarquee from "./components/NeobrutalistMarquee";
+
+const MotionImage = motion(Image);
 
 const navItems = [
   { label: "Services", href: "#services" },
@@ -142,7 +146,16 @@ export default function Home() {
   const [contactLoading, setContactLoading] = useState(false);
   const [contactError, setContactError] = useState("");
   const [testimonialIndex, setTestimonialIndex] = useState(0);
+  const [testimonialPaused, setTestimonialPaused] = useState(false);
   const featuredCategories = EVENT_CATEGORIES;
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setTestimonialPaused(mq.matches);
+    const onChange = (e) => setTestimonialPaused(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => {
@@ -164,11 +177,12 @@ export default function Home() {
   }, [mobileOpen]);
 
   useEffect(() => {
+    if (testimonialPaused) return;
     const id = setInterval(() => {
       setTestimonialIndex((prev) => (prev + 1) % testimonials.length);
     }, 5000);
     return () => clearInterval(id);
-  }, []);
+  }, [testimonialPaused]);
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
   const openLightbox = (index) => setLightboxIndex(index);
@@ -186,12 +200,19 @@ export default function Home() {
     return () => window.removeEventListener("keydown", onKey);
   }, [lightboxIndex]);
 
+  const contactLastSent = useRef(0);
   const handleContact = async (e) => {
     e.preventDefault();
+    const now = Date.now();
+    if (now - contactLastSent.current < 10000) {
+      setContactError("Please wait 10 seconds before sending another message.");
+      return;
+    }
     setContactLoading(true);
     setContactError("");
     try {
       await contactApi.send(contact);
+      contactLastSent.current = Date.now();
       setContactSent(true);
       setContact({ name: "", email: "", phone: "", message: "" });
     } catch (err) {
@@ -202,7 +223,9 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <>
+      <PageTitle title="Home" description="EventPro - Wedding & Event Management" />
+      <div className="min-h-screen bg-background text-foreground">
       {/* ── STICKY HEADER ── */}
       <header className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 ${
         scrolled
@@ -211,8 +234,9 @@ export default function Home() {
       }`}>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2">
           <Link href="/" className="flex items-center gap-1.5 flex-shrink-0 transition-all duration-300 hover:opacity-80">
-            <img src="/logo.svg" alt="" className="h-5 w-auto sm:h-6" />
-            <span className="font-serif text-sm font-bold tracking-tight sm:text-base">EventPro</span>
+            {/* FIXED: explicit w-4/w-5 to prevent SVG from expanding beyond intended size */}
+            <img src="/logo.svg" alt="" className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="font-serif text-xs font-bold tracking-tight sm:text-sm">EventPro</span>
             <span className="hidden sm:inline text-[7px] font-black uppercase tracking-[0.12em] text-[#c4975a] ml-0.5">Wedding & Event</span>
           </Link>
 
@@ -228,7 +252,7 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <Link href="/login" className="hidden sm:inline text-xs font-black uppercase tracking-[0.14em] text-foreground transition-all duration-300 hover:text-[#c4975a] hover:-translate-y-0.5">Login</Link>
             <Link href="/bookings" className="bg-[#c4975a] px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white shadow-md shadow-[#c4975a]/25 transition-all duration-300 hover:scale-105 hover:bg-[#b8894d] hover:shadow-lg hover:shadow-[#c4975a]/40 active:scale-95">Book Event</Link>
-            <button onClick={() => setMobileOpen(true)} className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e2dace] text-foreground/70 lg:hidden hover:bg-white/60 transition-colors">
+            <button onClick={() => setMobileOpen(true)} aria-label="Open navigation menu" className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e2dace] text-foreground/70 lg:hidden hover:bg-white/60 transition-colors">
               <Menu size={18} />
             </button>
           </div>
@@ -287,17 +311,24 @@ export default function Home() {
 
       <main>
         {/* ═══════════ HERO ═══════════ */}
-        <section id="home" className="relative flex min-h-[560px] items-center overflow-hidden md:min-h-[calc(100vh-56px)]">
-          <motion.img
+        <section id="home" className="relative flex min-h-[420px] items-center overflow-hidden md:min-h-[600px]">
+          <MotionImage
             initial={{ scale: 1.1 }}
             animate={{ scale: 1 }}
             transition={{ duration: 8, ease: "easeOut" }}
+            whileInView={{ scale: 1 }} viewport={{ once: true }}
             src="/images/Wedding.png" alt="A Pakistani wedding stage with elegant decor"
-            className="absolute inset-0 h-full w-full object-cover"
+            fill priority sizes="100vw"
+            className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#3d2c1f]/85 via-[#3d2c1f]/50 to-transparent" />
-          <div className="relative z-10 mx-auto grid w-full max-w-7xl gap-8 px-4 py-16 lg:grid-cols-[1fr_360px] lg:items-end">
-            <FadeIn className="max-w-3xl">
+          <div className="relative z-10 mx-auto grid w-full max-w-7xl gap-8 px-4 py-16 lg:grid-cols-[1fr_360px] lg:items-center">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="max-w-3xl"
+            >
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -332,8 +363,12 @@ export default function Home() {
                 <CtaLink href="/bookings">Plan My Event</CtaLink>
                 <CtaLink href="#services" variant="secondary">Explore Services</CtaLink>
               </motion.div>
-            </FadeIn>
-            <FadeIn delay={0.3}>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+            >
               <CornerFrame className="border-[2.5px] border-[#e8c878]/30 bg-[#4a3528]/40 p-5 text-white backdrop-blur-md transition-all duration-500 hover:bg-[#4a3528]/60 hover:shadow-2xl hover:shadow-black/20 group">
                 <div className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-[#e8c878]"><Award size={16} />Complete Event Suite</div>
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -342,7 +377,7 @@ export default function Home() {
                   ))}
                 </div>
               </CornerFrame>
-            </FadeIn>
+            </motion.div>
           </div>
         </section>
 
@@ -378,7 +413,7 @@ export default function Home() {
                   <Link href={service.href}
                     className="group flex flex-col bg-[#f9f3e8] h-full border-[4px] border-[#c4b096] shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-black/10 hover:border-[#d4af37]">
                     <div className="bg-[#ece6dc] overflow-hidden">
-                      <img src={service.image} alt={service.title} loading="lazy" className="w-full block transition-all duration-700 group-hover:scale-110 group-hover:rotate-0" />
+                      <Image src={service.image} alt={service.title} width={512} height={512} className="w-full block transition-all duration-700 group-hover:scale-110 group-hover:rotate-0" />
                     </div>
                     <div className="flex flex-col p-5 flex-1">
                       <div className="mb-3 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-[#c4975a] transition-colors duration-300 group-hover:text-[#b8894d]">{service.icon}Service</div>
@@ -399,10 +434,11 @@ export default function Home() {
         <FadeIn>
           <section id="makeup" className="bg-[#fcf6ed] py-20">
             <div className="mx-auto grid max-w-7xl gap-10 px-4 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-              <motion.img
+              <MotionImage
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 200 }}
-                src="/images/MakeupStyling.png" alt="Bridal and groom styling" loading="lazy"
+                src="/images/MakeupStyling.png" alt="Bridal and groom styling"
+                width={836} height={470} sizes="(max-width: 1024px) 100vw, 50vw"
                 className="h-[440px] w-full object-cover shadow-lg"
               />
               <div>
@@ -437,10 +473,11 @@ export default function Home() {
                 </div>
                 <div className="mt-8"><CtaLink href="/bookings?category=catering-services">Book Catering</CtaLink></div>
               </div>
-              <motion.img
+              <MotionImage
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 200 }}
-                src="/images/Food.png" alt="Pakistani wedding catering" loading="lazy"
+                src="/images/Food.png" alt="Pakistani wedding catering"
+                width={512} height={280} sizes="(max-width: 1024px) 100vw, 50vw"
                 className="h-[440px] w-full object-cover shadow-lg"
               />
             </div>
@@ -552,6 +589,10 @@ export default function Home() {
                       i === testimonialIndex ? "w-8 bg-[#c4975a]" : "w-2.5 bg-[#c4b096]/50 hover:bg-[#c4b096]"
                     }`} />
                 ))}
+                <button onClick={() => setTestimonialPaused((p) => !p)} aria-label={testimonialPaused ? "Resume auto-rotation" : "Pause auto-rotation"}
+                  className="ml-2 flex h-7 w-7 items-center justify-center rounded-full border border-[#c4b096] bg-white text-[10px] font-black text-[#5c4a3a] hover:border-[#d4af37] transition-colors">
+                  {testimonialPaused ? "▶" : "⏸"}
+                </button>
               </div>
               <button onClick={() => setTestimonialIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
                 className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 hidden md:flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#c4b096] bg-white shadow-md hover:border-[#d4af37] transition-colors">
@@ -582,9 +623,9 @@ export default function Home() {
                     transition={{ delay: index * 0.06 }}
                     whileHover={{ scale: 1.03 }}
                     className="relative h-56 overflow-hidden rounded-lg cursor-pointer shadow-md"
-                    style={{ backgroundImage: `url(${item.src})`, backgroundSize: "cover", backgroundPosition: "center" }}
                     onClick={() => openLightbox(index)}
                   >
+                    <Image src={item.src} alt={item.label} fill className="object-cover" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />
                     <figcaption className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-4 pt-8 pb-3 transition-all duration-300 hover:pb-5">
                       <div className="text-sm font-black uppercase tracking-[0.12em] text-white">{item.label}</div>
                       <div className="mt-1 text-xs leading-5 text-white/60 line-clamp-2">{item.description}</div>
@@ -596,17 +637,18 @@ export default function Home() {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
+                  role="dialog" aria-modal="true" aria-labelledby="lightbox-label"
                   className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-sm"
                   onClick={closeLightbox}
                 >
-                  <button type="button" className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center bg-white/10 text-white transition-all duration-300 hover:bg-white/25 hover:scale-110 hover:shadow-lg" onClick={closeLightbox}><X size={22} /></button>
+                  <button type="button" aria-label="Close lightbox" className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center bg-white/10 text-white transition-all duration-300 hover:bg-white/25 hover:scale-110 hover:shadow-lg" onClick={closeLightbox}><X size={22} /></button>
 
-                  <button type="button" onClick={(e) => { e.stopPropagation(); navigateLightbox(-1); }}
+                  <button type="button" aria-label="Previous image" onClick={(e) => { e.stopPropagation(); navigateLightbox(-1); }}
                     className="absolute left-4 top-1/2 -translate-y-1/2 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition-all duration-300 hover:bg-white/25 hover:scale-110">
                     <ChevronLeft size={24} />
                   </button>
 
-                  <button type="button" onClick={(e) => { e.stopPropagation(); navigateLightbox(1); }}
+                  <button type="button" aria-label="Next image" onClick={(e) => { e.stopPropagation(); navigateLightbox(1); }}
                     className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition-all duration-300 hover:bg-white/25 hover:scale-110">
                     <ChevronRight size={24} />
                   </button>
@@ -617,9 +659,9 @@ export default function Home() {
                     className="flex flex-col items-center"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <img src={gallery[lightboxIndex].src} alt={gallery[lightboxIndex].label} className="max-h-[75vh] max-w-[90vw] object-contain" />
+                    <Image src={gallery[lightboxIndex].src} alt={gallery[lightboxIndex].label} width={1200} height={675} className="max-h-[75vh] max-w-[90vw] object-contain" />
                     <div className="mt-4 text-center">
-                      <div className="text-lg font-bold text-white">{gallery[lightboxIndex].label}</div>
+                      <div id="lightbox-label" className="text-lg font-bold text-white">{gallery[lightboxIndex].label}</div>
                       <div className="mt-1 max-w-lg text-sm leading-6 text-white/65">{gallery[lightboxIndex].description}</div>
                     </div>
                   </motion.div>
@@ -759,15 +801,16 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 py-12">
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <img src="/logo.svg" alt="" className="h-6 w-auto brightness-0 invert" />
-                <span className="font-serif text-lg font-bold">EventPro</span>
+              <div className="flex items-center gap-1.5 mb-4">
+                {/* FIXED: explicit h-4 w-4 to prevent SVG from rendering at its intrinsic (full) size */}
+                <img src="/logo.svg" alt="" className="h-4 w-4 brightness-0 invert" />
+                <span className="font-serif text-sm font-bold">EventPro</span>
               </div>
               <p className="text-sm leading-6 text-white/60 max-w-xs">Pakistan-wide wedding planning, catering, decor, and logistics management platform.</p>
               <div className="mt-4 flex gap-3">
-                {["Facebook", "Instagram", "YouTube"].map((s) => (
-                  <span key={s} className="text-[10px] font-black uppercase tracking-[0.12em] text-white/40 hover:text-[#d4af37] transition-colors cursor-pointer">{s}</span>
-                ))}
+                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-[10px] font-black uppercase tracking-[0.12em] text-white/40 hover:text-[#d4af37] transition-colors">Facebook</a>
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-[10px] font-black uppercase tracking-[0.12em] text-white/40 hover:text-[#d4af37] transition-colors">Instagram</a>
+                <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-[10px] font-black uppercase tracking-[0.12em] text-white/40 hover:text-[#d4af37] transition-colors">YouTube</a>
               </div>
             </div>
             <div>
@@ -808,8 +851,8 @@ export default function Home() {
           <div className="mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/40">
             <span>&copy; {new Date().getFullYear()} EventPro. All rights reserved.</span>
             <div className="flex items-center gap-4">
-              <span className="hover:text-white/60 cursor-pointer transition-colors">Privacy Policy</span>
-              <span className="hover:text-white/60 cursor-pointer transition-colors">Terms of Service</span>
+              <Link href="/privacy" className="hover:text-white/60 transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-white/60 transition-colors">Terms of Service</Link>
             </div>
           </div>
         </div>
@@ -843,5 +886,6 @@ export default function Home() {
         <ChevronUp size={22} />
       </motion.button>
     </div>
+    </>
   );
 }

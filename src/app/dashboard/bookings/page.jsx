@@ -1,5 +1,6 @@
 "use client";
 
+import PageTitle from "../../components/PageTitle";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
@@ -35,6 +36,7 @@ function BookingsContent() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editingBooking, setEditingBooking] = useState(null);
+  const [cancelConfirmId, setCancelConfirmId] = useState(null);
   const addToast = useToast();
   const [form, setForm] = useState({
     eventName: "", eventDate: "", eventType: "wedding",
@@ -129,7 +131,6 @@ function BookingsContent() {
   };
 
   const cancelBooking = async (id) => {
-    if (!confirm("Cancel this booking?")) return;
     try {
       await dashboardApi.cancelBooking(id);
       loadBookings();
@@ -275,7 +276,8 @@ function BookingsContent() {
             <p className="text-sm font-bold text-black/50">{search || statusFilter !== "all" ? "No bookings match your filters." : "No bookings yet."}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border-[2.5px] border-[#c4b096] bg-[#f9f3e8] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+          <>
+          <div className="hidden md:block overflow-x-auto rounded-2xl border-[2.5px] border-[#c4b096] bg-[#f9f3e8] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b-[2.5px] border-[#c4b096] text-[10px] font-black uppercase tracking-[0.14em] text-black/45">
@@ -320,7 +322,7 @@ function BookingsContent() {
                               className="rounded-lg border-[2.5px] border-blue-200 bg-blue-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-blue-700 transition hover:bg-blue-100">
                               Confirm
                             </button>
-                            <button onClick={() => cancelBooking(b._id || b.id)}
+                            <button onClick={() => setCancelConfirmId(b._id || b.id)}
                               className="rounded-lg border-[2.5px] border-red-200 bg-red-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-red-600 transition hover:bg-red-100">
                               Cancel
                             </button>
@@ -332,7 +334,7 @@ function BookingsContent() {
                               className="rounded-lg border-[2.5px] border-green-200 bg-green-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-green-700 transition hover:bg-green-100">
                               Complete
                             </button>
-                            <button onClick={() => cancelBooking(b._id || b.id)}
+                            <button onClick={() => setCancelConfirmId(b._id || b.id)}
                               className="rounded-lg border-[2.5px] border-red-200 bg-red-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-red-600 transition hover:bg-red-100">
                               Cancel
                             </button>
@@ -352,11 +354,60 @@ function BookingsContent() {
               </tbody>
             </table>
           </div>
+
+          
+          <div className="md:hidden space-y-3">
+            {filtered.map((b) => (
+              <div key={b._id || b.id} className="rounded-2xl border-[2.5px] border-[#c4b096] bg-[#f9f3e8] p-4 shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-bold text-[#3d2c1f]">{b.eventName || "Untitled"}</span>
+                  <span className={`inline-block rounded-md border-[2.5px] px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.1em] ${STATUS_COLORS[b.status] || "bg-gray-50 text-gray-600"}`}>{b.status || "pending"}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs text-black/60">
+                  <div>Customer: {b.customerName || b.customerId?.name || "—"}</div>
+                  <div>Date: {formatDate(b.eventDate)}</div>
+                  <div>Venue: {b.hall?.name || b.hallName || "—"}</div>
+                  <div>Amount: {b.totalAmount ? currency.format(b.totalAmount) : "—"}</div>
+                </div>
+                <div className="mt-3 flex gap-2 justify-end">
+                  <button onClick={() => openEdit(b)} className="text-[10px] font-black uppercase tracking-[0.1em] text-[#c4975a]">Edit</button>
+                  {b.status === "pending" && (
+                    <>
+                      <button onClick={() => updateStatus(b._id || b.id, "confirmed")} className="text-[10px] font-black uppercase tracking-[0.1em] text-blue-700">Confirm</button>
+                      <button onClick={() => setCancelConfirmId(b._id || b.id)} className="text-[10px] font-black uppercase tracking-[0.1em] text-red-600">Cancel</button>
+                    </>
+                  )}
+                  {b.status === "confirmed" && (
+                    <>
+                      <button onClick={() => updateStatus(b._id || b.id, "completed")} className="text-[10px] font-black uppercase tracking-[0.1em] text-green-700">Complete</button>
+                      <button onClick={() => setCancelConfirmId(b._id || b.id)} className="text-[10px] font-black uppercase tracking-[0.1em] text-red-600">Cancel</button>
+                    </>
+                  )}
+                  {(b.status === "completed" || b.status === "cancelled") && (
+                    <span className="text-[10px] text-black/30 italic">{b.status === "completed" ? "Done" : "Cancelled"}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          </>
         )}
 
         <div className="mt-4 text-center text-[10px] text-black/30">
           {filtered.length} of {bookings.length} bookings shown
         </div>
+
+        {cancelConfirmId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setCancelConfirmId(null)}>
+            <div className="bg-white p-6 border-2 border-[#c4b096] shadow-xl max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+              <p className="text-sm font-bold text-[#3d2c1f] mb-4">Cancel this booking?</p>
+              <div className="flex gap-3 justify-end">
+                <button onClick={() => setCancelConfirmId(null)} className="px-4 py-2 text-xs font-bold border-2 border-[#c4b096] bg-white text-black/60 hover:bg-[#f9f3e8]">Keep</button>
+                <button onClick={() => { cancelBooking(cancelConfirmId); setCancelConfirmId(null); }} className="px-4 py-2 text-xs font-bold border-2 border-red-400 bg-red-50 text-red-700 hover:bg-red-100">Cancel Booking</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
     </main>
@@ -365,8 +416,11 @@ function BookingsContent() {
 
 export default function BookingsAdminPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#f7f3ed] flex items-center justify-center"><Loader2 className="animate-spin text-[#d4af37]" size={34} /></div>}>
-      <BookingsContent />
-    </Suspense>
+    <>
+      <PageTitle title="Manage Bookings" description="View and manage all event bookings" />
+      <Suspense fallback={<div className="min-h-screen bg-[#f7f3ed] flex items-center justify-center"><Loader2 className="animate-spin text-[#d4af37]" size={34} /></div>}>
+        <BookingsContent />
+      </Suspense>
+    </>
   );
 }

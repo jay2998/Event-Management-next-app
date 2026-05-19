@@ -1,5 +1,6 @@
 "use client";
 
+import PageTitle from "../../components/PageTitle";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -692,7 +693,9 @@ export default function CateringPage() {
   );
 
   return (
-    <main className="min-h-screen bg-[#f7f3ed] px-4 py-6 text-[#171717] sm:px-6 lg:px-8">
+    <>
+      <PageTitle title="Catering Manager" description="Manage catering menu, orders, and drafts" />
+      <main className="min-h-screen bg-[#f7f3ed] px-4 py-6 text-[#171717] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <Link href="/dashboard" className="mb-5 inline-flex items-center gap-2 text-sm font-extrabold text-[#c4975a] transition-colors hover:text-[#8b7355]">
           <ArrowLeft size={16} /> Back to dashboard
@@ -907,7 +910,8 @@ export default function CateringPage() {
               <p className="text-sm font-bold text-black/50">{search || orderFilter !== "All" ? "No matches." : "No catering orders yet."}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-2xl border-[2.5px] border-[#c4b096] bg-[#f9f3e8] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+            <>
+            <div className="hidden md:block overflow-x-auto rounded-2xl border-[2.5px] border-[#c4b096] bg-[#f9f3e8] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b-[2.5px] border-[#c4b096] text-[10px] font-black uppercase tracking-[0.14em] text-black/45">
@@ -954,6 +958,33 @@ export default function CateringPage() {
                 </tbody>
               </table>
             </div>
+
+            
+            <div className="md:hidden space-y-3">
+              {filteredOrders.map((o) => {
+                const itemCount = (o.items || o.menuItems || []).reduce((s, i) => s + Number(i.quantity || 1), 0);
+                return (
+                  <div key={o.id || o._id} className="rounded-2xl border-[2.5px] border-[#c4b096] bg-[#f9f3e8] p-4 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-bold text-[#3d2c1f]">{o.name || `Order #${String(o.id || "").slice(-6)}`}</span>
+                      {statusBadge(o.status || "pending")}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-black/60">
+                      <div>Booking: {typeof o.bookingId === "object" ? o.bookingId.name : o.bookingId || "—"}</div>
+                      <div>Items: {itemCount} items</div>
+                      <div>Amount: {o.totalAmount ? currency.format(o.totalAmount) : "—"}</div>
+                      {o.eventDate && <div>Date: {new Date(o.eventDate).toLocaleDateString()}</div>}
+                    </div>
+                    <div className="mt-3 flex gap-2 justify-end">
+                      <button onClick={() => setViewOrder(o)} className="text-[10px] font-black uppercase tracking-[0.1em] text-black/60">View</button>
+                      <button onClick={() => openEditOrder(o)} className="text-[10px] font-black uppercase tracking-[0.1em] text-[#c4975a]">Edit</button>
+                      <button onClick={() => openQcForm(o)} className="text-[10px] font-black uppercase tracking-[0.1em] text-blue-700">QC</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            </>
           )
         ) : (
           /* ═══════ CALCULATOR TAB (unchanged) ═══════ */
@@ -1126,5 +1157,6 @@ export default function CateringPage() {
         )}
       </div>
     </main>
+    </>
   );
 }

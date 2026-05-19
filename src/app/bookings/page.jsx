@@ -1,5 +1,6 @@
 "use client";
 
+import PageTitle from "../components/PageTitle";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -348,8 +349,11 @@ function BookingForm() {
 
 export default function NewBookingPage() {
   return (
-    <Suspense>
-      <BookingForm />
-    </Suspense>
+    <>
+      <PageTitle title="New Booking" description="Create a new event booking" />
+      <Suspense>
+        <BookingForm />
+      </Suspense>
+    </>
   );
 }
