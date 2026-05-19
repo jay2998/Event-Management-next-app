@@ -173,6 +173,18 @@ export default function Home() {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
   const openLightbox = (index) => setLightboxIndex(index);
   const closeLightbox = () => setLightboxIndex(null);
+  const navigateLightbox = (dir) => setLightboxIndex((prev) => (prev + dir + gallery.length) % gallery.length);
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const onKey = (e) => {
+      if (e.key === "ArrowRight") navigateLightbox(1);
+      if (e.key === "ArrowLeft") navigateLightbox(-1);
+      if (e.key === "Escape") closeLightbox();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightboxIndex]);
 
   const handleContact = async (e) => {
     e.preventDefault();
@@ -588,6 +600,17 @@ export default function Home() {
                   onClick={closeLightbox}
                 >
                   <button type="button" className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center bg-white/10 text-white transition-all duration-300 hover:bg-white/25 hover:scale-110 hover:shadow-lg" onClick={closeLightbox}><X size={22} /></button>
+
+                  <button type="button" onClick={(e) => { e.stopPropagation(); navigateLightbox(-1); }}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition-all duration-300 hover:bg-white/25 hover:scale-110">
+                    <ChevronLeft size={24} />
+                  </button>
+
+                  <button type="button" onClick={(e) => { e.stopPropagation(); navigateLightbox(1); }}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition-all duration-300 hover:bg-white/25 hover:scale-110">
+                    <ChevronRight size={24} />
+                  </button>
+
                   <motion.div
                     initial={{ scale: 0.9 }}
                     animate={{ scale: 1 }}
