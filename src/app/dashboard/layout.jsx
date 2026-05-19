@@ -9,7 +9,7 @@ import { ToastProvider } from "../components/Toast";
 import {
   LayoutDashboard, Building2, Car, PackageCheck, Utensils,
   ClipboardList, Users, Menu, X, LogOut, ChevronDown, ChevronRight,
-  Bell, Sparkles, Camera, Palette, Music, Shield, Box,
+  Bell, Sparkles, Camera, Palette, Music, Shield, Box, Home,
 } from "lucide-react";
 import { CATEGORY_GROUPS, EVENT_CATEGORIES } from "../../lib/categories";
 
@@ -192,11 +192,11 @@ export default function DashboardLayout({ children }) {
       }`}>
         <div className="flex items-center justify-between border-b-[2.5px] border-[#c4b096] px-4 py-3">
           <Link href="/dashboard" className="flex items-center gap-2 transition-all duration-300 hover:opacity-80">
-            <img src="/logo.svg" alt="" className="h-5 w-auto" />
+            <img src="/logo.svg" alt="EventPro" className="h-5 w-auto" />
             <div className="text-xs font-extrabold text-[#3d2c1f] leading-tight">EventPro</div>
           </Link>
-          <Link href="/" className="flex h-7 w-7 items-center justify-center rounded-lg border-[2.5px] border-[#c4b096] bg-white/60 text-[#8b7355] transition hover:border-[#C5A059] hover:text-[#C5A059]" title="Back to home">
-            <LayoutDashboard size={12} />
+          <Link href="/" className="flex h-7 w-7 items-center justify-center rounded-lg border-[2.5px] border-[#c4b096] bg-white/60 text-[#8b7355] transition hover:border-[#C5A059] hover:text-[#C5A059]" title="Back to home" aria-label="Back to home">
+            <Home size={12} />
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="flex h-7 w-7 items-center justify-center rounded-lg text-black/40 hover:bg-white/60 lg:hidden">
             <X size={16} />
@@ -296,20 +296,20 @@ export default function DashboardLayout({ children }) {
       <div className="flex flex-1 flex-col min-w-0 lg:ml-56">
         <header className="sticky top-0 z-30 border-b-[2.5px] border-[#c4b096] bg-[#F9F7F2]/95 backdrop-blur-md">
           <div className="flex items-center justify-between px-4 py-3 lg:px-6">
-            <button onClick={() => setSidebarOpen(true)}
+            <button onClick={() => setSidebarOpen(true)} aria-label="Open sidebar"
               className="flex h-9 w-9 items-center justify-center rounded-xl border-[2.5px] border-[#c4b096] bg-white/80 text-[#5c4a3a] transition hover:border-[#C5A059] lg:hidden">
               <Menu size={18} />
             </button>
             <Link href="/dashboard" className="items-center gap-2 transition-all duration-300 hover:opacity-80 hidden sm:flex">
-              <img src="/logo.svg" alt="" className="h-5 w-auto" />
+              <img src="/logo.svg" alt="EventPro" className="h-5 w-auto" />
               <span className="text-xs font-bold text-[#3d2c1f]">EventPro</span>
             </Link>
             <div className="flex items-center gap-2">
-              <button onClick={handleLogout}
+              <button onClick={handleLogout} aria-label="Log out"
                 className="flex h-9 w-9 items-center justify-center rounded-xl border-[2.5px] border-[#c4b096] bg-white/80 text-[#5c4a3a] transition hover:border-[#C5A059]">
                 <LogOut size={16} />
               </button>
-              <button onClick={() => setNotifPanelOpen((p) => !p)}
+              <button onClick={() => setNotifPanelOpen((p) => !p)} aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`}
                 className="relative flex h-9 w-9 items-center justify-center rounded-xl border-[2.5px] border-[#c4b096] bg-white/80 text-[#5c4a3a] transition hover:border-[#C5A059]">
                 <Bell size={16} />
                 {unreadCount > 0 && (

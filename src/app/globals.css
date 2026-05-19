@@ -1,11 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #fcf8f2; /* Warm cream/parchment */
-  --foreground: #3d2c1f; /* Warm dark brown */
-  --accent: #c4975a;     /* Warm gold-brown */
-  --gold: #d4af37;       /* Classic gold */
+  --background: #fcf8f2;
+  --foreground: #3d2c1f;
+  --accent: #c4975a;
+  --gold: #d4af37;
 }
 
 @theme inline {
@@ -76,11 +75,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes corner-draw {
-  from { width: 0; height: 0; }
-  to { width: 20px; height: 20px; }
-}
-
 @keyframes gold-pulse {
   0%, 100% { box-shadow: 0 0 8px rgba(212, 175, 55, 0.15); }
   50% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.35); }
@@ -97,6 +91,17 @@
   to { opacity: 1; transform: translateX(0); }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .animate-shimmer,
+  .animate-float,
+  .animate-border-glow,
+  .animate-gold-pulse,
+  .animate-ornament-spin {
+    animation: none !important;
+  }
+}
+
 .stagger-1 { animation-delay: 0.1s; }
 .stagger-2 { animation-delay: 0.2s; }
 .stagger-3 { animation-delay: 0.3s; }
@@ -106,39 +111,12 @@
 .stagger-7 { animation-delay: 0.7s; }
 .stagger-8 { animation-delay: 0.8s; }
 
-.corner-ornament::before,
-.corner-ornament::after {
-  content: '';
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  border-color: rgba(212, 175, 55, 0.5);
-  border-style: solid;
-  transition: all 0.4s ease;
-}
-.corner-ornament::before {
-  top: 10px;
-  left: 10px;
-  border-width: 1.5px 0 0 1.5px;
-}
-.corner-ornament::after {
-  bottom: 10px;
-  right: 10px;
-  border-width: 0 1.5px 1.5px 0;
-}
-.corner-ornament:hover::before,
-.corner-ornament:hover::after {
-  width: 28px;
-  height: 28px;
-  border-color: rgba(212, 175, 55, 0.8);
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
   line-height: 1.6;
-  overflow-x: clip; /* More robust horizontal containment */
+  overflow-x: clip;
   width: 100%;
   hyphens: none;
 }

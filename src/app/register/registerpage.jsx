@@ -110,6 +110,19 @@ export default function RegisterPage() {
                 required
                 minLength={6}
               />
+              {password.length > 0 && (
+                <div className="mt-1.5 flex items-center gap-2">
+                  <div className="flex-1 h-1.5 rounded-full bg-[#e2dace] overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-300" style={{
+                      width: `${Math.min(100, password.length * 10 + /[A-Z]/.test(password) * 15 + /[0-9]/.test(password) * 15 + /[^A-Za-z0-9]/.test(password) * 20)}%`,
+                      backgroundColor: password.length < 6 ? "#ef4444" : password.length < 8 ? "#f59e0b" : "#22c55e",
+                    }} />
+                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-[0.1em] text-black/40">
+                    {password.length < 6 ? "Weak" : password.length < 8 ? "Fair" : "Strong"}
+                  </span>
+                </div>
+              )}
             </label>
 
             <label className="block">

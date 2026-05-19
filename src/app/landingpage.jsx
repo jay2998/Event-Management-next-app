@@ -146,7 +146,16 @@ export default function Home() {
   const [contactLoading, setContactLoading] = useState(false);
   const [contactError, setContactError] = useState("");
   const [testimonialIndex, setTestimonialIndex] = useState(0);
+  const [testimonialPaused, setTestimonialPaused] = useState(false);
   const featuredCategories = EVENT_CATEGORIES;
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setTestimonialPaused(mq.matches);
+    const onChange = (e) => setTestimonialPaused(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => {
@@ -168,11 +177,12 @@ export default function Home() {
   }, [mobileOpen]);
 
   useEffect(() => {
+    if (testimonialPaused) return;
     const id = setInterval(() => {
       setTestimonialIndex((prev) => (prev + 1) % testimonials.length);
     }, 5000);
     return () => clearInterval(id);
-  }, []);
+  }, [testimonialPaused]);
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
   const openLightbox = (index) => setLightboxIndex(index);
@@ -190,12 +200,19 @@ export default function Home() {
     return () => window.removeEventListener("keydown", onKey);
   }, [lightboxIndex]);
 
+  const contactLastSent = useRef(0);
   const handleContact = async (e) => {
     e.preventDefault();
+    const now = Date.now();
+    if (now - contactLastSent.current < 10000) {
+      setContactError("Please wait 10 seconds before sending another message.");
+      return;
+    }
     setContactLoading(true);
     setContactError("");
     try {
       await contactApi.send(contact);
+      contactLastSent.current = Date.now();
       setContactSent(true);
       setContact({ name: "", email: "", phone: "", message: "" });
     } catch (err) {
@@ -235,7 +252,7 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <Link href="/login" className="hidden sm:inline text-xs font-black uppercase tracking-[0.14em] text-foreground transition-all duration-300 hover:text-[#c4975a] hover:-translate-y-0.5">Login</Link>
             <Link href="/bookings" className="bg-[#c4975a] px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white shadow-md shadow-[#c4975a]/25 transition-all duration-300 hover:scale-105 hover:bg-[#b8894d] hover:shadow-lg hover:shadow-[#c4975a]/40 active:scale-95">Book Event</Link>
-            <button onClick={() => setMobileOpen(true)} className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e2dace] text-foreground/70 lg:hidden hover:bg-white/60 transition-colors">
+            <button onClick={() => setMobileOpen(true)} aria-label="Open navigation menu" className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e2dace] text-foreground/70 lg:hidden hover:bg-white/60 transition-colors">
               <Menu size={18} />
             </button>
           </div>
@@ -299,6 +316,7 @@ export default function Home() {
             initial={{ scale: 1.1 }}
             animate={{ scale: 1 }}
             transition={{ duration: 8, ease: "easeOut" }}
+            whileInView={{ scale: 1 }} viewport={{ once: true }}
             src="/images/Wedding.png" alt="A Pakistani wedding stage with elegant decor"
             fill priority sizes="100vw"
             className="object-cover"
@@ -571,6 +589,10 @@ export default function Home() {
                       i === testimonialIndex ? "w-8 bg-[#c4975a]" : "w-2.5 bg-[#c4b096]/50 hover:bg-[#c4b096]"
                     }`} />
                 ))}
+                <button onClick={() => setTestimonialPaused((p) => !p)} aria-label={testimonialPaused ? "Resume auto-rotation" : "Pause auto-rotation"}
+                  className="ml-2 flex h-7 w-7 items-center justify-center rounded-full border border-[#c4b096] bg-white text-[10px] font-black text-[#5c4a3a] hover:border-[#d4af37] transition-colors">
+                  {testimonialPaused ? "▶" : "⏸"}
+                </button>
               </div>
               <button onClick={() => setTestimonialIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
                 className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 hidden md:flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#c4b096] bg-white shadow-md hover:border-[#d4af37] transition-colors">
@@ -615,17 +637,18 @@ export default function Home() {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
+                  role="dialog" aria-modal="true" aria-labelledby="lightbox-label"
                   className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-sm"
                   onClick={closeLightbox}
                 >
-                  <button type="button" className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center bg-white/10 text-white transition-all duration-300 hover:bg-white/25 hover:scale-110 hover:shadow-lg" onClick={closeLightbox}><X size={22} /></button>
+                  <button type="button" aria-label="Close lightbox" className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center bg-white/10 text-white transition-all duration-300 hover:bg-white/25 hover:scale-110 hover:shadow-lg" onClick={closeLightbox}><X size={22} /></button>
 
-                  <button type="button" onClick={(e) => { e.stopPropagation(); navigateLightbox(-1); }}
+                  <button type="button" aria-label="Previous image" onClick={(e) => { e.stopPropagation(); navigateLightbox(-1); }}
                     className="absolute left-4 top-1/2 -translate-y-1/2 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition-all duration-300 hover:bg-white/25 hover:scale-110">
                     <ChevronLeft size={24} />
                   </button>
 
-                  <button type="button" onClick={(e) => { e.stopPropagation(); navigateLightbox(1); }}
+                  <button type="button" aria-label="Next image" onClick={(e) => { e.stopPropagation(); navigateLightbox(1); }}
                     className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition-all duration-300 hover:bg-white/25 hover:scale-110">
                     <ChevronRight size={24} />
                   </button>
@@ -638,7 +661,7 @@ export default function Home() {
                   >
                     <Image src={gallery[lightboxIndex].src} alt={gallery[lightboxIndex].label} width={1200} height={675} className="max-h-[75vh] max-w-[90vw] object-contain" />
                     <div className="mt-4 text-center">
-                      <div className="text-lg font-bold text-white">{gallery[lightboxIndex].label}</div>
+                      <div id="lightbox-label" className="text-lg font-bold text-white">{gallery[lightboxIndex].label}</div>
                       <div className="mt-1 max-w-lg text-sm leading-6 text-white/65">{gallery[lightboxIndex].description}</div>
                     </div>
                   </motion.div>

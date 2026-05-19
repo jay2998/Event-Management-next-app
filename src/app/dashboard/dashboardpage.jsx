@@ -389,7 +389,13 @@ export default function DashboardPage() {
   }, [router]);
 
   useEffect(() => {
-    const id = setInterval(() => setCurrentTime(new Date()), 1000);
+    const id = setInterval(() => {
+      const now = new Date();
+      setCurrentTime((prev) => {
+        if (prev && prev.getMinutes() === now.getMinutes() && Math.abs(prev.getSeconds() - now.getSeconds()) < 2) return prev;
+        return now;
+      });
+    }, 1000);
     return () => clearInterval(id);
   }, []);
 
