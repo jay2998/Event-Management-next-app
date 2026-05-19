@@ -785,9 +785,9 @@ export default function Home() {
               </div>
               <p className="text-sm leading-6 text-white/60 max-w-xs">Pakistan-wide wedding planning, catering, decor, and logistics management platform.</p>
               <div className="mt-4 flex gap-3">
-                {["Facebook", "Instagram", "YouTube"].map((s) => (
-                  <span key={s} className="text-[10px] font-black uppercase tracking-[0.12em] text-white/40 hover:text-[#d4af37] transition-colors cursor-pointer">{s}</span>
-                ))}
+                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-[10px] font-black uppercase tracking-[0.12em] text-white/40 hover:text-[#d4af37] transition-colors">Facebook</a>
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-[10px] font-black uppercase tracking-[0.12em] text-white/40 hover:text-[#d4af37] transition-colors">Instagram</a>
+                <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-[10px] font-black uppercase tracking-[0.12em] text-white/40 hover:text-[#d4af37] transition-colors">YouTube</a>
               </div>
             </div>
             <div>
@@ -828,8 +828,8 @@ export default function Home() {
           <div className="mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/40">
             <span>&copy; {new Date().getFullYear()} EventPro. All rights reserved.</span>
             <div className="flex items-center gap-4">
-              <span className="hover:text-white/60 cursor-pointer transition-colors">Privacy Policy</span>
-              <span className="hover:text-white/60 cursor-pointer transition-colors">Terms of Service</span>
+              <Link href="/privacy" className="hover:text-white/60 transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-white/60 transition-colors">Terms of Service</Link>
             </div>
           </div>
         </div>
