@@ -217,7 +217,8 @@ export default function Home() {
       }`}>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2">
           <Link href="/" className="flex items-center gap-1.5 flex-shrink-0 transition-all duration-300 hover:opacity-80">
-            <img src="/logo.svg" alt="" className="h-4 w-auto sm:h-5" />
+            {/* FIXED: explicit w-4/w-5 to prevent SVG from expanding beyond intended size */}
+            <img src="/logo.svg" alt="" className="h-4 w-4 sm:h-5 sm:w-5" />
             <span className="font-serif text-xs font-bold tracking-tight sm:text-sm">EventPro</span>
             <span className="hidden sm:inline text-[7px] font-black uppercase tracking-[0.12em] text-[#c4975a] ml-0.5">Wedding & Event</span>
           </Link>
@@ -293,7 +294,7 @@ export default function Home() {
 
       <main>
         {/* ═══════════ HERO ═══════════ */}
-        <section id="home" className="relative flex min-h-[560px] items-center overflow-hidden md:min-h-[calc(100vh-56px)]">
+        <section id="home" className="relative flex min-h-[420px] items-center overflow-hidden md:min-h-[600px]">
           <MotionImage
             initial={{ scale: 1.1 }}
             animate={{ scale: 1 }}
@@ -303,8 +304,13 @@ export default function Home() {
             className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#3d2c1f]/85 via-[#3d2c1f]/50 to-transparent" />
-          <div className="relative z-10 mx-auto grid w-full max-w-7xl gap-8 px-4 py-16 lg:grid-cols-[1fr_360px] lg:items-end">
-            <FadeIn className="max-w-3xl">
+          <div className="relative z-10 mx-auto grid w-full max-w-7xl gap-8 px-4 py-16 lg:grid-cols-[1fr_360px] lg:items-center">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="max-w-3xl"
+            >
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -339,8 +345,12 @@ export default function Home() {
                 <CtaLink href="/bookings">Plan My Event</CtaLink>
                 <CtaLink href="#services" variant="secondary">Explore Services</CtaLink>
               </motion.div>
-            </FadeIn>
-            <FadeIn delay={0.3}>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+            >
               <CornerFrame className="border-[2.5px] border-[#e8c878]/30 bg-[#4a3528]/40 p-5 text-white backdrop-blur-md transition-all duration-500 hover:bg-[#4a3528]/60 hover:shadow-2xl hover:shadow-black/20 group">
                 <div className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-[#e8c878]"><Award size={16} />Complete Event Suite</div>
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -349,7 +359,7 @@ export default function Home() {
                   ))}
                 </div>
               </CornerFrame>
-            </FadeIn>
+            </motion.div>
           </div>
         </section>
 
@@ -769,7 +779,8 @@ export default function Home() {
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <div className="flex items-center gap-1.5 mb-4">
-                <img src="/logo.svg" alt="" className="h-3 w-auto brightness-0 invert" />
+                {/* FIXED: explicit h-4 w-4 to prevent SVG from rendering at its intrinsic (full) size */}
+                <img src="/logo.svg" alt="" className="h-4 w-4 brightness-0 invert" />
                 <span className="font-serif text-sm font-bold">EventPro</span>
               </div>
               <p className="text-sm leading-6 text-white/60 max-w-xs">Pakistan-wide wedding planning, catering, decor, and logistics management platform.</p>
