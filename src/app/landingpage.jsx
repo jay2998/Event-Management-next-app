@@ -217,8 +217,8 @@ export default function Home() {
       }`}>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2">
           <Link href="/" className="flex items-center gap-1.5 flex-shrink-0 transition-all duration-300 hover:opacity-80">
-            <img src="/logo.svg" alt="" className="h-5 w-auto sm:h-6" />
-            <span className="font-serif text-sm font-bold tracking-tight sm:text-base">EventPro</span>
+            <img src="/logo.svg" alt="" className="h-4 w-auto sm:h-5" />
+            <span className="font-serif text-xs font-bold tracking-tight sm:text-sm">EventPro</span>
             <span className="hidden sm:inline text-[7px] font-black uppercase tracking-[0.12em] text-[#c4975a] ml-0.5">Wedding & Event</span>
           </Link>
 
@@ -769,8 +769,8 @@ export default function Home() {
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <img src="/logo.svg" alt="" className="h-6 w-auto brightness-0 invert" />
-                <span className="font-serif text-lg font-bold">EventPro</span>
+                <img src="/logo.svg" alt="" className="h-4 w-auto brightness-0 invert" />
+                <span className="font-serif text-base font-bold">EventPro</span>
               </div>
               <p className="text-sm leading-6 text-white/60 max-w-xs">Pakistan-wide wedding planning, catering, decor, and logistics management platform.</p>
               <div className="mt-4 flex gap-3">

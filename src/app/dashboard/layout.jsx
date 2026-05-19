@@ -192,8 +192,8 @@ export default function DashboardLayout({ children }) {
       }`}>
         <div className="flex items-center justify-between border-b-[2.5px] border-[#c4b096] px-4 py-3">
           <Link href="/dashboard" className="flex items-center gap-2 transition-all duration-300 hover:opacity-80">
-            <img src="/logo.svg" alt="" className="h-8 w-auto" />
-            <div className="text-sm font-extrabold text-[#3d2c1f] leading-tight">EventPro</div>
+            <img src="/logo.svg" alt="" className="h-5 w-auto" />
+            <div className="text-xs font-extrabold text-[#3d2c1f] leading-tight">EventPro</div>
           </Link>
           <Link href="/" className="flex h-7 w-7 items-center justify-center rounded-lg border-[2.5px] border-[#c4b096] bg-white/60 text-[#8b7355] transition hover:border-[#C5A059] hover:text-[#C5A059]" title="Back to home">
             <LayoutDashboard size={12} />
@@ -301,8 +301,8 @@ export default function DashboardLayout({ children }) {
               <Menu size={18} />
             </button>
             <Link href="/dashboard" className="items-center gap-2 transition-all duration-300 hover:opacity-80 hidden sm:flex">
-              <img src="/logo.svg" alt="" className="h-7 w-auto" />
-              <span className="text-sm font-bold text-[#3d2c1f]">EventPro</span>
+              <img src="/logo.svg" alt="" className="h-5 w-auto" />
+              <span className="text-xs font-bold text-[#3d2c1f]">EventPro</span>
             </Link>
             <div className="flex items-center gap-2">
               <button onClick={handleLogout}
