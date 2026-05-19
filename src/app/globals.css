@@ -20,6 +20,14 @@
   --color-pastel-cream: #fcf6ed;
   --color-blush: #f0d5c0;
   --color-warm-brown: #4a3528;
+  --color-card-bg: #f9f3e8;
+  --color-border: #c4b096;
+  --color-border-light: #e2dace;
+  --color-text-muted: #5c4a3a;
+  --color-gold-light: #f5ecd9;
+  --color-gold-hover: #c4a030;
+  --color-bg-warm: #f7f3ed;
+  --color-whatsapp: #25D366;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-serif: 'Playfair Display', serif;
   --animate-fade-in: fade-in 0.6s ease-out;

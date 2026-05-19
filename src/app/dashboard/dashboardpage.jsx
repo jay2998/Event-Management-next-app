@@ -59,13 +59,13 @@ const getEventType = (b) => {
 /* ── Compact Stat Card ── */
 function StatCard({ title, value, icon }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border-2 border-[#c4b096]/70 bg-[#f9f3e8] px-4 py-2.5 shadow-sm">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#d4af37]/15 to-[#c4975a]/10 text-[#c4975a]">
+    <div className="flex items-center gap-3 rounded-lg border-2 border-[#c4b096]/70 bg-card-bg px-4 py-2.5 shadow-sm">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#d4af37]/15 to-[#c4975a]/10 text-accent">
         {icon}
       </span>
       <div className="min-w-0">
         <div className="text-[10px] font-bold uppercase tracking-[0.1em] text-black/45">{title}</div>
-        <div className="text-lg font-black text-[#3d2c1f] truncate leading-tight">{value}</div>
+        <div className="text-lg font-black text-foreground truncate leading-tight">{value}</div>
       </div>
     </div>
   );
@@ -101,12 +101,12 @@ function MiniCalendar({ bookings }) {
     return map;
   }, [bookings]);
   return (
-    <div className="border-[2px] border-[#c4b096]/70 bg-[#f9f3e8] p-2.5 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+    <div className="border-[2px] border-[#c4b096]/70 bg-card-bg p-2.5 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
       <div className="mb-1.5 flex items-center justify-between">
         <span className="text-[10px] font-bold text-black/50">{current.toLocaleString("default", { month: "short", year: "numeric" })}</span>
         <div className="flex gap-1">
-          <button onClick={() => setCurrent(new Date(current.getFullYear(), current.getMonth() - 1, 1))} className="flex h-5 w-5 items-center justify-center rounded border border-[#e8e0d2] text-black/40 hover:border-[#d4af37]"><ChevronLeft size={11} /></button>
-          <button onClick={() => setCurrent(new Date(current.getFullYear(), current.getMonth() + 1, 1))} className="flex h-5 w-5 items-center justify-center rounded border border-[#e8e0d2] text-black/40 hover:border-[#d4af37]"><ChevronRight size={11} /></button>
+          <button onClick={() => setCurrent(new Date(current.getFullYear(), current.getMonth() - 1, 1))} className="flex h-5 w-5 items-center justify-center rounded border border-[#e8e0d2] text-black/40 hover:border-gold"><ChevronLeft size={11} /></button>
+          <button onClick={() => setCurrent(new Date(current.getFullYear(), current.getMonth() + 1, 1))} className="flex h-5 w-5 items-center justify-center rounded border border-[#e8e0d2] text-black/40 hover:border-gold"><ChevronRight size={11} /></button>
         </div>
       </div>
       <div className="grid grid-cols-7 gap-0.5 text-center">
@@ -118,9 +118,9 @@ function MiniCalendar({ bookings }) {
           const isToday = date.toDateString() === new Date().toDateString();
           const count = bookingMap[date.toDateString()] || 0;
           return (
-            <div key={day} className={`relative text-[9px] py-[3px] rounded ${isToday ? "bg-[#c4975a] text-white font-bold" : count > 0 ? "bg-amber-50 font-bold text-[#8a6a00]" : "text-black/60"}`}>
+            <div key={day} className={`relative text-[9px] py-[3px] rounded ${isToday ? "bg-accent text-white font-bold" : count > 0 ? "bg-amber-50 font-bold text-[#8a6a00]" : "text-black/60"}`}>
               {day}
-              {count > 0 && !isToday && <div className="absolute top-[1px] right-[1px] h-1 w-1 rounded-full bg-[#d4af37]" />}
+              {count > 0 && !isToday && <div className="absolute top-[1px] right-[1px] h-1 w-1 rounded-full bg-gold" />}
             </div>
           );
         })}
@@ -135,10 +135,10 @@ function VenueAvailability({ halls }) {
   const total = halls.length;
   const pct = total ? Math.round((available / total) * 100) : 0;
   return (
-    <div className="border-[2px] border-[#c4b096]/70 bg-[#f9f3e8] p-2.5 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+    <div className="border-[2px] border-[#c4b096]/70 bg-card-bg p-2.5 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-[9px] font-bold uppercase tracking-[0.1em] text-black/45">Venues</span>
-        <span className="text-sm font-black text-[#c4975a]">{available}<span className="text-[9px] font-bold text-black/40">/{total}</span></span>
+        <span className="text-sm font-black text-accent">{available}<span className="text-[9px] font-bold text-black/40">/{total}</span></span>
       </div>
       <div className="mb-1.5 h-1.5 overflow-hidden rounded-full bg-[#e8e0d2]">
         <div className="h-full rounded-full bg-gradient-to-r from-[#d4af37] to-[#c4975a]" style={{ width: `${pct}%` }} />
@@ -146,7 +146,7 @@ function VenueAvailability({ halls }) {
       <div className="space-y-1.5">
         {halls.slice(0, 3).map((hall) => (
           <div key={hall.id || hall._id} className="flex items-center justify-between gap-2 border-t border-[#e8e0d2] pt-1.5">
-            <span className="text-[10px] font-semibold text-[#3d2c1f] truncate">{hall.name || hall.hallName || "Hall"}</span>
+            <span className="text-[10px] font-semibold text-foreground truncate">{hall.name || hall.hallName || "Hall"}</span>
             <span className={`shrink-0 rounded px-1.5 py-0.5 text-[8px] font-black uppercase ${hall.isAvailable ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>{hall.isAvailable ? "Avail" : "Booked"}</span>
           </div>
         ))}
@@ -172,7 +172,7 @@ function BookingStatusBreakdown({ bookings }) {
   const total = bookings.length || 0;
   const empty = data.length === 0;
   return (
-    <div className="border-2 border-[#c4b096]/70 bg-[#f9f3e8] p-2.5 shadow-sm flex flex-col items-center">
+    <div className="border-2 border-[#c4b096]/70 bg-card-bg p-2.5 shadow-sm flex flex-col items-center">
       <div className="shrink-0 flex items-center justify-between">
         <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-black/45">Booking Status</span>
         <span className="text-[9px] font-bold text-black/40">{total} total</span>
@@ -194,7 +194,7 @@ function BookingStatusBreakdown({ bookings }) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <div className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: d.color }} />
-                    <span className="text-[10px] font-bold text-[#3d2c1f]">{d.name}</span>
+                    <span className="text-[10px] font-bold text-foreground">{d.name}</span>
                   </div>
                   <span className="text-[10px] font-black text-black/60">{d.value}</span>
                 </div>
@@ -248,7 +248,7 @@ function RevenueTrend({ bookings, period }) {
   const hasData = chartData.length > 0 && chartData.some((d) => d.revenue > 0);
 
   return (
-    <div className="border-2 border-[#c4b096]/70 bg-[#f9f3e8] p-2.5 shadow-sm">
+    <div className="border-2 border-[#c4b096]/70 bg-card-bg p-2.5 shadow-sm">
       <div className="shrink-0 flex items-center justify-between">
         <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-black/45">Revenue Trend</span>
         <span className="text-[9px] font-bold text-black/40 capitalize">{period}</span>
@@ -277,12 +277,12 @@ function PeekRow({ bookings }) {
   const pending = bookings.filter((b) => b.status === "pending" || !b.status).length;
   const today = bookings.filter((b) => new Date(b.eventDate).toDateString() === new Date().toDateString()).length;
   return (
-    <div className="border-[2px] border-[#c4b096]/70 bg-[#f9f3e8] p-2.5 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+    <div className="border-[2px] border-[#c4b096]/70 bg-card-bg p-2.5 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
       <span className="text-[9px] font-bold uppercase tracking-[0.1em] text-black/45">Quick Peek</span>
       <div className="mt-1.5 flex gap-4">
         <span className="text-[10px]"><span className="font-black text-amber-600">{pending}</span> <span className="text-black/40">pending</span></span>
-        <span className="text-[10px]"><span className="font-black text-[#c4975a]">{today}</span> <span className="text-black/40">today</span></span>
-        <span className="text-[10px]"><span className="font-black text-[#3d2c1f]">{bookings.length}</span> <span className="text-black/40">total</span></span>
+        <span className="text-[10px]"><span className="font-black text-accent">{today}</span> <span className="text-black/40">today</span></span>
+        <span className="text-[10px]"><span className="font-black text-foreground">{bookings.length}</span> <span className="text-black/40">total</span></span>
       </div>
     </div>
   );
@@ -293,13 +293,13 @@ function NotificationsFeed({ notifications }) {
   const unread = (notifications || []).filter((n) => !n.read);
   const recent = unread.slice(0, 2);
   return (
-    <div className="border-[2px] border-[#c4b096]/70 bg-[#f9f3e8] p-2.5 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+    <div className="border-[2px] border-[#c4b096]/70 bg-card-bg p-2.5 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-[9px] font-bold uppercase tracking-[0.1em] text-black/45">Alerts</span>
-        {unread.length > 0 && <span className="rounded-full bg-[#c4975a] px-1.5 py-0.5 text-[7px] font-black text-white">{unread.length} new</span>}
+        {unread.length > 0 && <span className="rounded-full bg-accent px-1.5 py-0.5 text-[7px] font-black text-white">{unread.length} new</span>}
       </div>
       {recent.length > 0 ? recent.map((n, i) => (
-        <div key={n.id || n._id || i} className="border-t border-[#e8e0d2] pt-1.5 text-[9px] leading-tight font-bold text-[#3d2c1f]">
+        <div key={n.id || n._id || i} className="border-t border-[#e8e0d2] pt-1.5 text-[9px] leading-tight font-bold text-foreground">
           {n.message}
         </div>
       )) : (
@@ -426,7 +426,7 @@ export default function DashboardPage() {
       <>
         <PageTitle title="Dashboard" description="EventPro management dashboard" />
         <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
-        <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-[#d4af37]/20 border-t-[#d4af37]" />
+        <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-[#d4af37]/20 border-t-gold" />
         <span className="text-xs font-bold uppercase tracking-[0.14em] text-black/50">Loading your dashboard&hellip;</span>
       </div>
       </>
@@ -442,14 +442,14 @@ export default function DashboardPage() {
         {/* ═══════ COMPACT HEADER ═══════ */}
         <div className="flex shrink-0 items-center justify-between rounded-xl bg-gradient-to-r from-[#4a3528] to-[#3d2c1f] px-8 py-5 text-white shadow-lg">
           <div className="flex items-center gap-6 min-w-0">
-            <span className="h-3 w-3 shrink-0 rounded-full bg-[#d4af37]" />
+            <span className="h-3 w-3 shrink-0 rounded-full bg-gold" />
             <div className="min-w-0">
               <span className="text-xl font-black leading-tight">{greeting}, {user.name?.split(" ")[0] || "there"}</span>
               <span className="ml-4 text-sm text-[#e8c878]/80">{!isCustomer ? `${stats.totalBookings || 0} total bookings` : "Guest Portal"}</span>
             </div>
             {!isCustomer && (
               <div className="hidden sm:flex items-center gap-4 ml-4">
-                {todayEvents.length > 0 && <span className="rounded-full bg-[#d4af37]/20 px-4 py-1 text-sm font-bold text-[#e8c878]">{todayEvents.length} today</span>}
+                {todayEvents.length > 0 && <span className="rounded-full bg-gold/20 px-4 py-1 text-sm font-bold text-soft-gold">{todayEvents.length} today</span>}
                 <span className="text-sm text-[#e8c878]/60">{(stats.totalRevenue || 0).toLocaleString()} PKR</span>
               </div>
             )}
@@ -481,8 +481,8 @@ export default function DashboardPage() {
                 <button key={p} onClick={() => setPeriod(p)}
                   className={`rounded-xl border-2 px-6 py-3 text-sm font-black uppercase tracking-[0.1em] transition ${
                     period === p
-                      ? "border-[#d4af37] bg-[#fff8dc] text-[#8a6a00]"
-                      : "border-[#c4b096]/60 bg-white/60 text-black/50 hover:border-[#d4af37] hover:text-[#3d2c1f]"
+                      ? "border-gold bg-[#fff8dc] text-[#8a6a00]"
+                      : "border-[#c4b096]/60 bg-white/60 text-black/50 hover:border-gold hover:text-foreground"
                   }`}>
                   {p}
                 </button>
@@ -501,7 +501,7 @@ export default function DashboardPage() {
             <RevenueTrend bookings={filteredBookings} period={period} />
 
             {/* Col 3: Upcoming Events */}
-            <div className="border-2 border-[#c4b096]/70 bg-[#f9f3e8] p-4 shadow-sm flex flex-col min-h-0">
+            <div className="border-2 border-[#c4b096]/70 bg-card-bg p-4 shadow-sm flex flex-col min-h-0">
               <span className="shrink-0 text-[11px] font-bold uppercase tracking-[0.12em] text-black/45">Upcoming</span>
               <div className="overflow-y-auto mt-2 space-y-2 min-h-0 max-h-[320px]">
                 {upcomingEvents.length > 0 ? upcomingEvents.slice(0, 8).map((b) => {
@@ -510,7 +510,7 @@ export default function DashboardPage() {
                     <div key={b.id || b._id} className="flex items-start gap-3 border-t border-[#e8e0d2] pt-2">
                       <div className="h-2.5 w-2.5 shrink-0 rounded-full mt-0.5" style={{ backgroundColor: ET.color }} />
                       <div className="min-w-0 flex-1">
-                        <div className="text-[11px] font-bold text-[#3d2c1f] truncate leading-tight">{b.eventName}</div>
+                        <div className="text-[11px] font-bold text-foreground truncate leading-tight">{b.eventName}</div>
                         <div className="text-[9px] text-black/45">{formatDate(b.eventDate)}{b.customerName ? ` · ${b.customerName}` : ""}</div>
                       </div>
                       <div className="shrink-0">
@@ -531,10 +531,10 @@ export default function DashboardPage() {
               <PeekRow bookings={bookings} />
               <NotificationsFeed notifications={notifications} />
               {user.role === "admin" && (
-                <Link href="/dashboard/admin/access-control" className="flex items-center gap-2 border-2 border-[#c4b096]/70 bg-gradient-to-r from-[#f0fdfa]/80 to-[#f9f3e8] p-3 shadow-sm hover:border-[#d4af37] transition shrink-0">
-                  <ShieldCheck size={16} className="text-[#c4975a]" />
-                  <span className="text-[10px] font-bold text-[#3d2c1f]">Admin Console</span>
-                  <span className="ml-auto text-[10px] text-[#c4975a]">&rarr;</span>
+                <Link href="/dashboard/admin/access-control" className="flex items-center gap-2 border-2 border-[#c4b096]/70 bg-gradient-to-r from-[#f0fdfa]/80 to-[#f9f3e8] p-3 shadow-sm hover:border-gold transition shrink-0">
+                  <ShieldCheck size={16} className="text-accent" />
+                  <span className="text-[10px] font-bold text-foreground">Admin Console</span>
+                  <span className="ml-auto text-[10px] text-accent">&rarr;</span>
                 </Link>
               )}
             </div>
@@ -550,11 +550,11 @@ export default function DashboardPage() {
               const Icon = card.icon;
               return (
                 <Link key={card.href} href={card.href}
-                  className="flex flex-col border-2 border-[#c4b096]/70 bg-[#f9f3e8] p-4 shadow-sm hover:border-[#d4af37] transition">
-                  <span className="mb-1.5 text-[#c4975a]"><Icon size={22} /></span>
-                  <h3 className="text-sm font-bold text-[#3d2c1f]">{card.title}</h3>
+                  className="flex flex-col border-2 border-[#c4b096]/70 bg-card-bg p-4 shadow-sm hover:border-gold transition">
+                  <span className="mb-1.5 text-accent"><Icon size={22} /></span>
+                  <h3 className="text-sm font-bold text-foreground">{card.title}</h3>
                   <p className="mt-0.5 text-[11px] text-black/55">{card.desc}</p>
-                  <span className="mt-2 text-[10px] font-bold text-[#c4975a]">Start &rarr;</span>
+                  <span className="mt-2 text-[10px] font-bold text-accent">Start &rarr;</span>
                 </Link>
               );
             })}

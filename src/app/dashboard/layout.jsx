@@ -182,20 +182,20 @@ export default function DashboardLayout({ children }) {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="flex min-h-screen bg-[#f7f3ed]">
+    <div className="flex min-h-screen bg-bg-warm">
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-56 flex-col border-r-[2.5px] border-[#c4b096] bg-gradient-to-b from-[#F9F7F2] to-[#f0ebe3] transition-transform duration-300 lg:translate-x-0 ${
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-56 flex-col border-r-[2.5px] border-border bg-gradient-to-b from-[#F9F7F2] to-[#f0ebe3] transition-transform duration-300 lg:translate-x-0 ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}>
-        <div className="flex items-center justify-between border-b-[2.5px] border-[#c4b096] px-4 py-3">
+        <div className="flex items-center justify-between border-b-[2.5px] border-border px-4 py-3">
           <Link href="/dashboard" className="flex items-center gap-2 transition-all duration-300 hover:opacity-80">
             <img src="/logo.svg" alt="EventPro" className="h-5 w-auto" />
-            <div className="text-xs font-extrabold text-[#3d2c1f] leading-tight">EventPro</div>
+            <div className="text-xs font-extrabold text-foreground leading-tight">EventPro</div>
           </Link>
-          <Link href="/" className="flex h-7 w-7 items-center justify-center rounded-lg border-[2.5px] border-[#c4b096] bg-white/60 text-[#8b7355] transition hover:border-[#C5A059] hover:text-[#C5A059]" title="Back to home" aria-label="Back to home">
+          <Link href="/" className="flex h-7 w-7 items-center justify-center rounded-lg border-[2.5px] border-border bg-white/60 text-taupe transition hover:border-[#C5A059] hover:text-[#C5A059]" title="Back to home" aria-label="Back to home">
             <Home size={12} />
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="flex h-7 w-7 items-center justify-center rounded-lg text-black/40 hover:bg-white/60 lg:hidden">
@@ -209,15 +209,15 @@ export default function DashboardLayout({ children }) {
               {(user.name || "U").charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-extrabold text-[#3d2c1f] truncate leading-tight max-w-[100px]">{user.name || "User"}</div>
-              <div className="text-[8px] font-bold uppercase tracking-[0.1em] text-[#8b7355] leading-tight">{user.role || "guest"}</div>
+              <div className="text-xs font-extrabold text-foreground truncate leading-tight max-w-[100px]">{user.name || "User"}</div>
+              <div className="text-[8px] font-bold uppercase tracking-[0.1em] text-taupe leading-tight">{user.role || "guest"}</div>
             </div>
           </div>
 
           {filteredNavSections.map((section) => (
             <div key={section.label} className="mb-1">
               <button onClick={() => toggleSection(section.label)}
-                className="flex w-full items-center gap-1 px-2 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-[#8b7355] hover:text-[#3d2c1f] transition-colors">
+                className="flex w-full items-center gap-1 px-2 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-taupe hover:text-foreground transition-colors">
                 {expandedSections[section.label] ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
                 {section.label}
               </button>
@@ -238,12 +238,12 @@ export default function DashboardLayout({ children }) {
                       })}
                         className={`group flex w-full items-center gap-2 rounded-lg px-2 py-1 text-xs font-bold transition-all ${
                           childActive
-                            ? "bg-gradient-to-r from-[#C5A059]/20 to-[#c4975a]/10 text-[#3d2c1f] border-l-[3px] border-[#C5A059]"
-                            : "text-[#5c4a3a] hover:bg-white/60 hover:text-[#3d2c1f] border-l-[3px] border-transparent"
+                            ? "bg-gradient-to-r from-[#C5A059]/20 to-[#c4975a]/10 text-foreground border-l-[3px] border-[#C5A059]"
+                            : "text-text-muted hover:bg-white/60 hover:text-foreground border-l-[3px] border-transparent"
                         }`}>
-                        <item.icon size={13} className={childActive ? "text-[#C5A059]" : "text-[#8b7355] shrink-0"} />
+                        <item.icon size={13} className={childActive ? "text-[#C5A059]" : "text-taupe shrink-0"} />
                         <span className="truncate leading-tight flex-1 text-left text-xs">{item.label}</span>
-                        {isOpen ? <ChevronDown size={11} className="text-[#8b7355]" /> : <ChevronRight size={11} className="text-[#8b7355]" />}
+                        {isOpen ? <ChevronDown size={11} className="text-taupe" /> : <ChevronRight size={11} className="text-taupe" />}
                       </button>
                       {isOpen && (
                         <div className="ml-3 mt-0.5 space-y-0.5 border-l-2 border-[#c4b096]/30 pl-1.5">
@@ -253,10 +253,10 @@ export default function DashboardLayout({ children }) {
                               <Link key={sub.href} href={sub.href} onClick={() => setSidebarOpen(false)}
                                 className={`group flex items-center gap-1.5 rounded-lg px-2 py-0.5 text-[11px] font-semibold transition-all ${
                                   active
-                                    ? "bg-gradient-to-r from-[#C5A059]/15 to-[#c4975a]/8 text-[#3d2c1f] border-l-[2px] border-[#C5A059]"
-                                    : "text-[#5c4a3a] hover:bg-white/60 hover:text-[#3d2c1f] border-l-[2px] border-transparent"
+                                    ? "bg-gradient-to-r from-[#C5A059]/15 to-[#c4975a]/8 text-foreground border-l-[2px] border-[#C5A059]"
+                                    : "text-text-muted hover:bg-white/60 hover:text-foreground border-l-[2px] border-transparent"
                                 }`}>
-                                <sub.icon size={11} className={active ? "text-[#C5A059]" : "text-[#8b7355] shrink-0"} />
+                                <sub.icon size={11} className={active ? "text-[#C5A059]" : "text-taupe shrink-0"} />
                                 <span className="truncate leading-tight">{sub.label}</span>
                               </Link>
                             );
@@ -271,10 +271,10 @@ export default function DashboardLayout({ children }) {
                   <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)}
                     className={`group flex items-center gap-2 rounded-lg px-2 py-1 text-xs font-bold transition-all ${
                       active
-                        ? "bg-gradient-to-r from-[#C5A059]/20 to-[#c4975a]/10 text-[#3d2c1f] border-l-[3px] border-[#C5A059]"
-                        : "text-[#5c4a3a] hover:bg-white/60 hover:text-[#3d2c1f] border-l-[3px] border-transparent"
+                        ? "bg-gradient-to-r from-[#C5A059]/20 to-[#c4975a]/10 text-foreground border-l-[3px] border-[#C5A059]"
+                        : "text-text-muted hover:bg-white/60 hover:text-foreground border-l-[3px] border-transparent"
                     }`}>
-                    <item.icon size={13} className={active ? "text-[#C5A059]" : "text-[#8b7355] shrink-0"} />
+                    <item.icon size={13} className={active ? "text-[#C5A059]" : "text-taupe shrink-0"} />
                     <span className="truncate leading-tight">{item.label}</span>
                     {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#C5A059] shrink-0" />}
                   </Link>
@@ -284,9 +284,9 @@ export default function DashboardLayout({ children }) {
           ))}
         </nav>
 
-        <div className="border-t-[2.5px] border-[#c4b096] p-3">
+        <div className="border-t-[2.5px] border-border p-3">
           <button onClick={handleLogout}
-            className="flex w-full items-center justify-center gap-1.5 rounded-lg border-[2.5px] border-[#c4b096] bg-white/60 px-2 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-[#5c4a3a] transition hover:border-[#C5A059] hover:bg-white">
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg border-[2.5px] border-border bg-white/60 px-2 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-text-muted transition hover:border-[#C5A059] hover:bg-white">
             <LogOut size={12} />
             Sign Out
           </button>
@@ -294,23 +294,23 @@ export default function DashboardLayout({ children }) {
       </aside>
 
       <div className="flex flex-1 flex-col min-w-0 lg:ml-56">
-        <header className="sticky top-0 z-30 border-b-[2.5px] border-[#c4b096] bg-[#F9F7F2]/95 backdrop-blur-md">
+        <header className="sticky top-0 z-30 border-b-[2.5px] border-border bg-[#F9F7F2]/95 backdrop-blur-md">
           <div className="flex items-center justify-between px-4 py-3 lg:px-6">
             <button onClick={() => setSidebarOpen(true)} aria-label="Open sidebar"
-              className="flex h-9 w-9 items-center justify-center rounded-xl border-[2.5px] border-[#c4b096] bg-white/80 text-[#5c4a3a] transition hover:border-[#C5A059] lg:hidden">
+              className="flex h-9 w-9 items-center justify-center rounded-xl border-[2.5px] border-border bg-white/80 text-text-muted transition hover:border-[#C5A059] lg:hidden">
               <Menu size={18} />
             </button>
             <Link href="/dashboard" className="items-center gap-2 transition-all duration-300 hover:opacity-80 hidden sm:flex">
               <img src="/logo.svg" alt="EventPro" className="h-5 w-auto" />
-              <span className="text-xs font-bold text-[#3d2c1f]">EventPro</span>
+              <span className="text-xs font-bold text-foreground">EventPro</span>
             </Link>
             <div className="flex items-center gap-2">
               <button onClick={handleLogout} aria-label="Log out"
-                className="flex h-9 w-9 items-center justify-center rounded-xl border-[2.5px] border-[#c4b096] bg-white/80 text-[#5c4a3a] transition hover:border-[#C5A059]">
+                className="flex h-9 w-9 items-center justify-center rounded-xl border-[2.5px] border-border bg-white/80 text-text-muted transition hover:border-[#C5A059]">
                 <LogOut size={16} />
               </button>
               <button onClick={() => setNotifPanelOpen((p) => !p)} aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`}
-                className="relative flex h-9 w-9 items-center justify-center rounded-xl border-[2.5px] border-[#c4b096] bg-white/80 text-[#5c4a3a] transition hover:border-[#C5A059]">
+                className="relative flex h-9 w-9 items-center justify-center rounded-xl border-[2.5px] border-border bg-white/80 text-text-muted transition hover:border-[#C5A059]">
                 <Bell size={16} />
                 {unreadCount > 0 && (
                   <span className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-[#C5A059] text-[8px] font-black text-white flex items-center justify-center shadow-sm">
@@ -330,34 +330,34 @@ export default function DashboardLayout({ children }) {
       </div>
 
       {notifPanelOpen && (
-        <div className="fixed right-4 top-16 z-50 w-80 rounded-xl border-[2.5px] border-[#c4b096] bg-[#F9F7F2] shadow-2xl">
-          <div className="flex items-center justify-between border-b-[2.5px] border-[#c4b096] px-3 py-2.5">
+        <div className="fixed right-4 top-16 z-50 w-80 rounded-xl border-[2.5px] border-border bg-[#F9F7F2] shadow-2xl">
+          <div className="flex items-center justify-between border-b-[2.5px] border-border px-3 py-2.5">
             <span className="text-xs font-black uppercase tracking-[0.1em] text-[#C5A059]">Notifications</span>
             <div className="flex items-center gap-1">
               <button onClick={() => setShowRead((p) => !p)}
-                className="text-[9px] font-bold uppercase tracking-[0.08em] text-[#8b7355] hover:text-[#3d2c1f] transition-colors">
+                className="text-[9px] font-bold uppercase tracking-[0.08em] text-taupe hover:text-foreground transition-colors">
                 {showRead ? "Hide read" : "Show read"}
               </button>
               <button onClick={() => setNotifPanelOpen(false)}
-                className="flex h-6 w-6 items-center justify-center rounded-lg text-[#5c4a3a] hover:bg-white/60 transition-colors">
+                className="flex h-6 w-6 items-center justify-center rounded-lg text-text-muted hover:bg-white/60 transition-colors">
                 <X size={14} />
               </button>
             </div>
           </div>
           <div className="max-h-72 overflow-y-auto">
             {visibleNotifications.length === 0 ? (
-              <div className="flex items-center justify-center py-8 text-xs text-[#8b7355]">
+              <div className="flex items-center justify-center py-8 text-xs text-taupe">
                 {showRead ? "No notifications" : "No unread notifications"}
               </div>
             ) : visibleNotifications.map((n) => (
               <div
                 key={n.id || n._id}
                 onClick={(e) => handleNotificationClick(n, e)}
-                className="flex items-start gap-2 px-3 py-2.5 border-b border-[#c4b096]/40 text-xs leading-relaxed break-words cursor-pointer font-bold text-[#3d2c1f] bg-white/60 hover:bg-white/80 transition-colors"
+                className="flex items-start gap-2 px-3 py-2.5 border-b border-[#c4b096]/40 text-xs leading-relaxed break-words cursor-pointer font-bold text-foreground bg-white/60 hover:bg-white/80 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <div>{n.message}</div>
-                  <div className="text-[9px] text-[#8b7355]/70 mt-0.5">{new Date(n.createdAt).toLocaleString()}</div>
+                  <div className="text-[9px] text-taupe/70 mt-0.5">{new Date(n.createdAt).toLocaleString()}</div>
                 </div>
               </div>
             ))}
@@ -366,14 +366,14 @@ export default function DashboardLayout({ children }) {
       )}
 
       {toast && (
-        <div className="fixed right-4 top-20 z-50 max-w-xs animate-slide-in rounded-xl border-[2.5px] border-[#c4b096] bg-[#F9F7F2] px-4 py-3 shadow-2xl">
+        <div className="fixed right-4 top-20 z-50 max-w-xs animate-slide-in rounded-xl border-[2.5px] border-border bg-[#F9F7F2] px-4 py-3 shadow-2xl">
           <div className="flex items-start gap-2">
             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#C5A059] text-[9px] font-black text-white">!</span>
             <div>
               <div className="text-[10px] font-black uppercase tracking-[0.1em] text-[#C5A059]">New Notification</div>
-              <p className="mt-0.5 text-xs leading-relaxed text-[#5c4a3a]">{toast}</p>
+              <p className="mt-0.5 text-xs leading-relaxed text-text-muted">{toast}</p>
             </div>
-            <button onClick={() => setToast(null)} className="shrink-0 text-[#8b7355] hover:text-[#5c4a3a]"><X size={14} /></button>
+            <button onClick={() => setToast(null)} className="shrink-0 text-taupe hover:text-text-muted"><X size={14} /></button>
           </div>
         </div>
       )}
