@@ -768,9 +768,9 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 py-12">
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <img src="/logo.svg" alt="" className="h-4 w-auto brightness-0 invert" />
-                <span className="font-serif text-base font-bold">EventPro</span>
+              <div className="flex items-center gap-1.5 mb-4">
+                <img src="/logo.svg" alt="" className="h-3 w-auto brightness-0 invert" />
+                <span className="font-serif text-sm font-bold">EventPro</span>
               </div>
               <p className="text-sm leading-6 text-white/60 max-w-xs">Pakistan-wide wedding planning, catering, decor, and logistics management platform.</p>
               <div className="mt-4 flex gap-3">
