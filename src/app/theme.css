@@ -18,15 +18,16 @@
 
 html, body{ height:100%; width: 100%; margin: 0; padding: 0; }
 
-body{
-  background-color: var(--app-bg2);
-  background-image: 
+/* Body background pattern uses Tailwind classes from layout, keeps the linen texture as overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
     radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.12), transparent 70%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cfilter id='linen' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23linen)' opacity='0.05'/%3E%3C/svg%3E");
-
-  color: var(--app-text);
-  font-family: 'Inter', system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* General heading styles for a royal feel */
@@ -81,20 +82,21 @@ img, video, canvas, svg {
 }
 
 input,
-select {
-  background: var(--app-bg3) !important;
-  border-color: var(--app-border) !important;
-  color: var(--app-text) !important;
-  border-radius: 0px !important;
+select,
+textarea {
+  background: var(--app-bg3);
+  border-color: var(--app-border);
+  color: var(--app-text);
   padding: 0.35rem 0.75rem;
-  border: 1px solid var(--app-border) !important;
-  text-transform: uppercase;
+  border: 1px solid var(--app-border);
   font-size: 0.7rem;
   letter-spacing: 0.08em;
   transition: all 0.3s ease;
 }
 
-input:focus {
+input:focus,
+select:focus,
+textarea:focus {
   border-color: var(--accent) !important;
   outline: none;
   box-shadow: 0 0 0 3px var(--accent-soft);
