@@ -7,6 +7,7 @@ import {
   ArrowLeft, Car, Loader2, Plus, X, Search,
 } from "lucide-react";
 import { vehiclesApi } from "../../../lib/api";
+import { localDB } from "../../../lib/store";
 
 const VEHICLE_TYPES = ["car", "sedan", "suv", "van", "bus", "luxury", "decorated"];
 const CONDITION_OPTIONS = ["excellent", "good", "fair", "maintenance"];
@@ -36,8 +37,10 @@ export default function VehiclesPage() {
     try {
       const res = await vehiclesApi.list();
       setVehicles(res?.data?.data || res?.data || []);
-    } catch (err) {
-      setError(err.message || "Failed to load vehicles");
+    } catch {
+      const local = localDB.findAll("vehicles");
+      setVehicles(local?.data?.data || []);
+      setError("Backend offline — showing local data");
     } finally {
       setLoading(false);
     }
@@ -76,9 +79,9 @@ export default function VehiclesPage() {
         features: form.features.split(",").map((s) => s.trim()).filter(Boolean),
       };
       if (editingId) {
-        await vehiclesApi.update(editingId, payload);
+        await vehiclesApi.update(editingId, payload).catch(() => localDB.update("vehicles", editingId, payload));
       } else {
-        await vehiclesApi.create(payload);
+        await vehiclesApi.create(payload).catch(() => localDB.create("vehicles", payload));
       }
       setShowForm(false);
       loadVehicles();
@@ -90,7 +93,7 @@ export default function VehiclesPage() {
   const deleteVehicle = async (id) => {
     if (!confirm("Delete this vehicle?")) return;
     try {
-      await vehiclesApi.delete(id);
+      await vehiclesApi.delete(id).catch(() => localDB.delete("vehicles", id));
       loadVehicles();
     } catch (err) {
       alert(err.message || "Failed to delete vehicle");
@@ -99,7 +102,8 @@ export default function VehiclesPage() {
 
   const toggleAvailability = async (vehicle) => {
     try {
-      await vehiclesApi.updateAvailability(vehicle._id || vehicle.id, !vehicle.isAvailable);
+      const id = vehicle._id || vehicle.id;
+      await vehiclesApi.updateAvailability(id, !vehicle.isAvailable).catch(() => localDB.update("vehicles", id, { isAvailable: !vehicle.isAvailable }));
       loadVehicles();
     } catch (err) {
       alert(err.message || "Failed to update availability");
@@ -178,7 +182,7 @@ export default function VehiclesPage() {
                     <input name="vehicleNumber" value={form.vehicleNumber} onChange={(e) => setForm({ ...form, vehicleNumber: e.target.value })} className="mt-1 w-full rounded-xl border-[2.5px] border-[#c4b096] bg-white/80 px-2 py-1.5 text-xs outline-none focus:border-[#d4af37]" required />
                   </label>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <label className="block text-xs font-bold text-black/60">Type*
                     <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="mt-1 w-full rounded-xl border-[2.5px] border-[#c4b096] bg-white/80 px-2 py-1.5 text-xs outline-none focus:border-[#d4af37]">
                       {VEHICLE_TYPES.map((t) => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}

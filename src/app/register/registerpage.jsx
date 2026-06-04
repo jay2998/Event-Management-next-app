@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ShadowPopButton from "../components/ShadowPopButton";
 import { User, Mail, Phone, Lock, Loader2 } from "lucide-react";
+import { authApi } from "../../lib/api";
+import { localDB } from "../../lib/store";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -20,7 +22,6 @@ export default function RegisterPage() {
     setError("");
 
     try {
-      const { authApi } = await import("../../lib/api.js");
       const res = await authApi.register({ name, email, phone, password });
 
       const payload = res?.data;
@@ -31,22 +32,20 @@ export default function RegisterPage() {
       if (token) {
         window.localStorage.setItem("token", token);
         if (user) window.localStorage.setItem("user", JSON.stringify(user));
-        router.push(userRole === "customer" ? "/enquiry" : "/dashboard");
-      } else {
-        router.push("/login");
+        return router.push(userRole === "customer" ? "/enquiry" : "/dashboard");
       }
-    } catch (err) {
-      const msg = err.message?.toLowerCase() || "";
-      const isNetworkError = msg.includes("fetch") || msg.includes("network") || msg.includes("econnrefused") || msg.includes("enotfound") || msg.includes("econnreset");
-
-      if (isNetworkError) {
-        const demoUser = { name, email, role: "customer" };
-        window.localStorage.setItem("token", "demo-token-customer");
-        window.localStorage.setItem("user", JSON.stringify(demoUser));
-        router.push("/enquiry");
-      } else {
-        setError(err.message || "Register failed");
+      router.push("/login");
+    } catch {
+      const result = localDB.create("users", { name, email, phone, password, role: "customer" });
+      const newUser = result?.data?.data;
+      if (newUser) {
+        const { password: _, ...safeUser } = newUser;
+        const localToken = "local_" + btoa(JSON.stringify({ email, ts: Date.now() }));
+        window.localStorage.setItem("token", localToken);
+        window.localStorage.setItem("user", JSON.stringify(safeUser));
+        return router.push("/enquiry");
       }
+      setError("Registration failed");
     } finally {
       setLoading(false);
     }
@@ -68,9 +67,10 @@ export default function RegisterPage() {
               </div>
             )}
 
-            <label className="block">
+            <label className="block" htmlFor="reg-name">
               <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-black/60"><User size={14} className="text-[#b4975a]" /> Full Name</span>
               <input
+                id="reg-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoComplete="name"
@@ -80,9 +80,10 @@ export default function RegisterPage() {
               />
             </label>
 
-            <label className="block">
+            <label className="block" htmlFor="reg-email">
               <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-black/60"><Mail size={14} className="text-[#b4975a]" /> Email</span>
               <input
+                id="reg-email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 type="email"
@@ -93,9 +94,10 @@ export default function RegisterPage() {
               />
             </label>
 
-            <label className="block">
+            <label className="block" htmlFor="reg-phone">
               <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-black/60"><Phone size={14} className="text-[#b4975a]" /> Phone (optional)</span>
               <input
+                id="reg-phone"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 autoComplete="tel"
@@ -104,9 +106,10 @@ export default function RegisterPage() {
               />
             </label>
 
-            <label className="block">
+            <label className="block" htmlFor="reg-password">
               <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-black/60"><Lock size={14} className="text-[#b4975a]" /> Password</span>
               <input
+                id="reg-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 type="password"

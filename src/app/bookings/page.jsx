@@ -6,6 +6,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, CalendarDays, Loader2, Save, UserRound } from "lucide-react";
 import { dashboardApi } from "../../lib/api";
 import { EVENT_CATEGORIES, getCategoryByKey } from "../../lib/categories";
+import { useUser, useAuthGuard } from "../../lib/hooks/useUser";
 
 const initialForm = {
   eventName: "",
@@ -22,18 +23,11 @@ const initialForm = {
 
 const safeList = (response) => response?.data?.data || response?.data || [];
 
-const getStoredUser = () => {
-  try {
-    const raw = window.localStorage.getItem("user");
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-};
-
 function BookingForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const user = useUser();
+  useAuthGuard(router);
   const initialCategory = searchParams.get("category") || EVENT_CATEGORIES[0].key;
 
   const [categoryKey, setCategoryKey] = useState(initialCategory);
@@ -47,13 +41,6 @@ function BookingForm() {
   const selectedHall = halls.find((hall) => (hall._id || hall.id) === form.hall);
 
   useEffect(() => {
-    const token = window.localStorage.getItem("token");
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
-    const user = getStoredUser();
     setForm((current) => ({
       ...current,
       customerName: user?.name || "",
@@ -183,10 +170,11 @@ function BookingForm() {
               <label>
                 <span className="text-xs font-bold">Category</span>
                 <select
+                  id="category"
                   name="category"
                   value={categoryKey}
                   onChange={(event) => setCategoryKey(event.target.value)}
-                  className="mt-1 w-full"
+                  className="mt-1 w-full border-2 border-[#e8e0d2] bg-white px-2.5 py-1.5 text-sm text-[#3d2c1f] outline-none transition-all duration-300 focus:border-[#d4af37] focus:shadow-[0_0_0_3px_rgba(212,175,55,0.1)]"
                 >
                   {EVENT_CATEGORIES.map((item) => (
                     <option key={item.key} value={item.key}>
@@ -210,20 +198,22 @@ function BookingForm() {
               <label>
                 <span className="text-xs font-bold">Event Name</span>
                 <input
+                  id="eventName"
                   name="eventName"
                   value={form.eventName}
                   onChange={handleChange}
-                  className="mt-1 w-full"
+                  className="mt-1 w-full border-2 border-[#e8e0d2] bg-white px-2.5 py-1.5 text-sm text-[#3d2c1f] outline-none transition-all duration-300 focus:border-[#d4af37] focus:shadow-[0_0_0_3px_rgba(212,175,55,0.1)] placeholder:text-black/30"
                   required
                 />
               </label>
               <label>
                 <span className="text-xs font-bold">Service / Venue</span>
                 <select
+                  id="hall"
                   name="hall"
                   value={form.hall}
                   onChange={handleChange}
-                  className="mt-1 w-full"
+                  className="mt-1 w-full border-2 border-[#e8e0d2] bg-white px-2.5 py-1.5 text-sm text-[#3d2c1f] outline-none transition-all duration-300 focus:border-[#d4af37] focus:shadow-[0_0_0_3px_rgba(212,175,55,0.1)]"
                   required
                 >
                   {halls.map((hall) => (
@@ -236,44 +226,48 @@ function BookingForm() {
               <label>
                 <span className="text-xs font-bold">Event Date</span>
                 <input
+                  id="eventDate"
                   name="eventDate"
                   type="date"
                   value={form.eventDate}
                   onChange={handleChange}
-                  className="mt-1 w-full"
+                  className="mt-1 w-full border-2 border-[#e8e0d2] bg-white px-2.5 py-1.5 text-sm text-[#3d2c1f] outline-none transition-all duration-300 focus:border-[#d4af37] focus:shadow-[0_0_0_3px_rgba(212,175,55,0.1)]"
                   required
                 />
               </label>
               <label>
                 <span className="text-xs font-bold">Event Time</span>
                 <input
+                  id="eventTime"
                   name="eventTime"
                   type="time"
                   value={form.eventTime}
                   onChange={handleChange}
-                  className="mt-1 w-full"
+                  className="mt-1 w-full border-2 border-[#e8e0d2] bg-white px-2.5 py-1.5 text-sm text-[#3d2c1f] outline-none transition-all duration-300 focus:border-[#d4af37] focus:shadow-[0_0_0_3px_rgba(212,175,55,0.1)]"
                   required
                 />
               </label>
               <label>
                 <span className="text-xs font-bold">Guest Count</span>
                 <input
+                  id="guestCount"
                   name="guestCount"
                   type="number"
                   min="1"
                   value={form.guestCount}
                   onChange={handleChange}
-                  className="mt-1 w-full"
+                  className="mt-1 w-full border-2 border-[#e8e0d2] bg-white px-2.5 py-1.5 text-sm text-[#3d2c1f] outline-none transition-all duration-300 focus:border-[#d4af37] focus:shadow-[0_0_0_3px_rgba(212,175,55,0.1)]"
                   required
                 />
               </label>
               <label>
                 <span className="text-xs font-bold">Package</span>
                 <select
+                  id="package"
                   name="package"
                   value={form.package}
                   onChange={handleChange}
-                  className="mt-1 w-full"
+                  className="mt-1 w-full border-2 border-[#e8e0d2] bg-white px-2.5 py-1.5 text-sm text-[#3d2c1f] outline-none transition-all duration-300 focus:border-[#d4af37] focus:shadow-[0_0_0_3px_rgba(212,175,55,0.1)]"
                 >
                   <option value="standard">Standard</option>
                   <option value="premium">Premium</option>
@@ -287,29 +281,32 @@ function BookingForm() {
               <label>
                 <span className="text-xs font-bold">Customer Name</span>
                 <input
+                  id="customerName"
                   name="customerName"
                   value={form.customerName}
                   onChange={handleChange}
-                  className="mt-1 w-full"
+                  className="mt-1 w-full border-2 border-[#e8e0d2] bg-white px-2.5 py-1.5 text-sm text-[#3d2c1f] outline-none transition-all duration-300 focus:border-[#d4af37] focus:shadow-[0_0_0_3px_rgba(212,175,55,0.1)] placeholder:text-black/30"
                 />
               </label>
               <label>
                 <span className="text-xs font-bold">Email</span>
                 <input
+                  id="customerEmail"
                   name="customerEmail"
                   type="email"
                   value={form.customerEmail}
                   onChange={handleChange}
-                  className="mt-1 w-full"
+                  className="mt-1 w-full border-2 border-[#e8e0d2] bg-white px-2.5 py-1.5 text-sm text-[#3d2c1f] outline-none transition-all duration-300 focus:border-[#d4af37] focus:shadow-[0_0_0_3px_rgba(212,175,55,0.1)] placeholder:text-black/30"
                 />
               </label>
               <label>
                 <span className="text-xs font-bold">Phone</span>
                 <input
+                  id="customerPhone"
                   name="customerPhone"
                   value={form.customerPhone}
                   onChange={handleChange}
-                  className="mt-1 w-full"
+                  className="mt-1 w-full border-2 border-[#e8e0d2] bg-white px-2.5 py-1.5 text-sm text-[#3d2c1f] outline-none transition-all duration-300 focus:border-[#d4af37] focus:shadow-[0_0_0_3px_rgba(212,175,55,0.1)] placeholder:text-black/30"
                 />
               </label>
             </section>
@@ -317,10 +314,11 @@ function BookingForm() {
             <label>
               <span className="text-xs font-bold">Category Requirements / Notes</span>
               <textarea
+                id="notes"
                 name="notes"
                 value={form.notes}
                 onChange={handleChange}
-                className="mt-1 min-h-20 w-full border border-[#e8e1d5] bg-white p-3 text-xs outline-none focus:border-[#d4af37]"
+                className="mt-1 min-h-20 w-full border-2 border-[#e8e0d2] bg-white px-2.5 py-1.5 text-sm text-[#3d2c1f] outline-none transition-all duration-300 focus:border-[#d4af37] focus:shadow-[0_0_0_3px_rgba(212,175,55,0.1)] placeholder:text-black/30"
                 placeholder={category.formFocus}
               />
             </label>

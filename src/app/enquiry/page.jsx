@@ -58,24 +58,24 @@ export default function EnquiryPage() {
           )}
 
           <form onSubmit={handleSubmit} className="mt-5 space-y-3">
-            <label className="block">
+            <label className="block" htmlFor="enq-name">
               <span className="text-xs font-bold uppercase tracking-[0.12em] text-black/60">Name</span>
-              <input name="name" value={form.name} onChange={handleChange} required
+              <input id="enq-name" name="name" value={form.name} onChange={handleChange} required
                 className="mt-1 w-full border-[2.5px] border-[#e8e0d2] bg-white px-2.5 py-1.5 text-sm text-[#3d2c1f] outline-none focus:border-[#d4af37] placeholder:text-black/30" />
             </label>
-            <label className="block">
+            <label className="block" htmlFor="enq-email">
               <span className="text-xs font-bold uppercase tracking-[0.12em] text-black/60">Email</span>
-              <input name="email" type="email" value={form.email} onChange={handleChange} required
+              <input id="enq-email" name="email" type="email" value={form.email} onChange={handleChange} required
                 className="mt-1 w-full border-[2.5px] border-[#e8e0d2] bg-white px-2.5 py-1.5 text-sm text-[#3d2c1f] outline-none focus:border-[#d4af37] placeholder:text-black/30" />
             </label>
-            <label className="block">
+            <label className="block" htmlFor="enq-phone">
               <span className="text-xs font-bold uppercase tracking-[0.12em] text-black/60">Phone</span>
-              <input name="phone" type="tel" value={form.phone} onChange={handleChange}
+              <input id="enq-phone" name="phone" type="tel" value={form.phone} onChange={handleChange}
                 className="mt-1 w-full border-[2.5px] border-[#e8e0d2] bg-white px-2.5 py-1.5 text-sm text-[#3d2c1f] outline-none focus:border-[#d4af37] placeholder:text-black/30" />
             </label>
-            <label className="block">
+            <label className="block" htmlFor="enq-message">
               <span className="text-xs font-bold uppercase tracking-[0.12em] text-black/60">Message</span>
-              <textarea name="message" value={form.message} onChange={handleChange} required rows={4}
+              <textarea id="enq-message" name="message" value={form.message} onChange={handleChange} required rows={4}
                 className="mt-1 w-full border-[2.5px] border-[#e8e0d2] bg-white px-2.5 py-1.5 text-sm text-[#3d2c1f] outline-none focus:border-[#d4af37] placeholder:text-black/30 resize-none" />
             </label>
             <button type="submit" disabled={submitting}

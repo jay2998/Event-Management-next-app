@@ -7,6 +7,7 @@ import {
   ArrowLeft, PackageCheck, Loader2, Plus, X, Search,
 } from "lucide-react";
 import { rentalsApi } from "../../../lib/api";
+import { localDB } from "../../../lib/store";
 
 const ITEM_CATEGORIES = ["Tables", "Chairs", "Linens", "Decor", "Lighting", "Sound", "Tents", "Flatware", "Glassware", "Other"];
 const CITY_OPTIONS = ["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", "Gujranwala", "Peshawar", "Quetta", "Other"];
@@ -36,8 +37,10 @@ export default function RentalsPage() {
     try {
       const res = await rentalsApi.list();
       setRentals(res?.data?.data || res?.data || []);
-    } catch (err) {
-      setError(err.message || "Failed to load rentals");
+    } catch {
+      const local = localDB.findAll("rentals");
+      setRentals(local?.data?.data || []);
+      setError("Backend offline — showing local data");
     } finally {
       setLoading(false);
     }
@@ -86,9 +89,9 @@ export default function RentalsPage() {
         items,
       };
       if (editingId) {
-        await rentalsApi.update(editingId, payload);
+        await rentalsApi.update(editingId, payload).catch(() => localDB.update("rentals", editingId, payload));
       } else {
-        await rentalsApi.create(payload);
+        await rentalsApi.create(payload).catch(() => localDB.create("rentals", payload));
       }
       setShowForm(false);
       loadRentals();
@@ -100,7 +103,7 @@ export default function RentalsPage() {
   const deleteRental = async (id) => {
     if (!confirm("Delete this rental?")) return;
     try {
-      await rentalsApi.delete(id);
+      await rentalsApi.delete(id).catch(() => localDB.delete("rentals", id));
       loadRentals();
     } catch (err) {
       alert(err.message || "Failed to delete rental");

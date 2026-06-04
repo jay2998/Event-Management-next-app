@@ -29,16 +29,6 @@ export default function NeobrutalistMarquee({ items = [] }) {
           ))}
         </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-marquee {
-          animation: marquee 48s linear infinite;
-        }
-      `}</style>
     </div>
   );
 }

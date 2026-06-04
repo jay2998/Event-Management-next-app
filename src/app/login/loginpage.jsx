@@ -3,18 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Mail, Lock, ShieldCheck, Store, User } from "lucide-react";
+import { authApi } from "../../lib/api";
+import { localDB } from "../../lib/store";
 
 const ROLES = [
   { key: "admin", label: "Admin", icon: <ShieldCheck size={16} />, desc: "Full system access, user management, all bookings" },
   { key: "vendor", label: "Vendor", icon: <Store size={16} />, desc: "Service fulfillment, inventory, order management" },
   { key: "customer", label: "Customer", icon: <User size={16} />, desc: "My bookings, event planning, invoices" },
 ];
-
-const DEMO_CREDENTIALS = {
-  admin: { email: "admin@eventpro.com", password: "admin123" },
-  vendor: { email: "vendor@eventpro.com", password: "vendor123" },
-  customer: { email: "customer@eventpro.com", password: "customer123" },
-};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,25 +20,12 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const DEMO_USERS = {
-    admin:    { name: "Admin User",    email: "admin@eventpro.com",    role: "admin" },
-    vendor:   { name: "Vendor User",   email: "vendor@eventpro.com",   role: "vendor" },
-    customer: { name: "Customer User", email: "customer@eventpro.com", role: "customer" },
-  };
-
-  const loginLocally = (user) => {
-    window.localStorage.setItem("token", "demo-token-" + user.role);
-    window.localStorage.setItem("user", JSON.stringify(user));
-    router.push(user.role === "customer" ? "/enquiry" : "/dashboard");
-  };
-
   const onSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      const { authApi } = await import("../../lib/api.js");
       const res = await authApi.login({ email, password });
       const payload = res?.data;
       const token = payload?.token || payload?.data?.token || payload?.data?.accessToken;
@@ -56,29 +39,22 @@ export default function LoginPage() {
       const userRole = user?.role || role;
       router.push(userRole === "customer" ? "/enquiry" : "/dashboard");
     } catch (err) {
-      const msg = err.message?.toLowerCase() || "";
-      const isNetworkError = msg.includes("fetch") || msg.includes("network") || msg.includes("econnrefused") || msg.includes("enotfound") || msg.includes("econnreset");
+      const result = localDB.findAll("users");
+      const users = result?.data?.data || [];
+      const match = users.find((u) => u.email === email && u.password === password);
 
-      if (isNetworkError) {
-        const match = Object.values(DEMO_USERS).find((u) => u.email === email);
-        if (match && DEMO_CREDENTIALS[match.role]?.password === password) {
-          loginLocally(match);
-          return;
-        }
-        setError("Cannot connect to server. Use the demo credentials shown above and click Auto-fill, then sign in with the backend running.");
-      } else {
-        setError(err.message || "Login failed");
+      if (match) {
+        const { password: _, ...safeUser } = match;
+        const localToken = "local_" + btoa(JSON.stringify({ email, ts: Date.now() }));
+        window.localStorage.setItem("token", localToken);
+        window.localStorage.setItem("user", JSON.stringify(safeUser));
+        return router.push(match.role === "customer" ? "/enquiry" : "/dashboard");
       }
+
+      setError(err.message || "Login failed");
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillDemo = () => {
-    const creds = DEMO_CREDENTIALS[role];
-    setEmail(creds.email);
-    setPassword(creds.password);
-    setError("");
   };
 
   const roleStyles = (key) =>
@@ -115,19 +91,6 @@ export default function LoginPage() {
             {ROLES.find((r) => r.key === role)?.desc}
           </div>
 
-          <div className="mt-3 flex items-center justify-between border-[2.5px] border-[#e8e0d2] bg-white px-3 py-2">
-            <span className="text-xs text-black/45">
-              Demo: <span className="font-mono font-bold text-black/70">{DEMO_CREDENTIALS[role].email}</span>
-            </span>
-            <button
-              type="button"
-              onClick={fillDemo}
-              className="text-[11px] font-black uppercase tracking-[0.12em] text-[#c4975a] transition-colors hover:text-[#d4af37]"
-            >
-              Auto-fill
-            </button>
-          </div>
-
           {error && (
             <div className="mt-4 border-[2.5px] border-red-300 bg-red-50 px-4 py-3 text-xs text-red-700">
               {error}
@@ -135,12 +98,13 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={onSubmit} className="mt-3 space-y-2.5">
-            <label className="block">
+            <label className="block" htmlFor="login-email">
               <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-black/60">
                 <Mail size={14} className="text-[#c4975a]" />
                 Email
               </span>
               <input
+                id="login-email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 type="email"
@@ -151,12 +115,13 @@ export default function LoginPage() {
               />
             </label>
 
-            <label className="block">
+            <label className="block" htmlFor="login-password">
               <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-black/60">
                 <Lock size={14} className="text-[#c4975a]" />
                 Password
               </span>
               <input
+                id="login-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 type="password"
@@ -182,14 +147,6 @@ export default function LoginPage() {
               )}
             </button>
 
-            <div className="mt-3 text-center">
-              <a
-                href="/forgot-password"
-                className="text-[11px] text-black/45 underline underline-offset-2 transition-colors hover:text-[#c4975a]"
-              >
-                Forgot password?
-              </a>
-            </div>
           </form>
 
           <div className="mt-5 text-center text-xs text-black/55">

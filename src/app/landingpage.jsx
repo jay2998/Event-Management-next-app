@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import { motion, useInView, AnimatePresence, MotionConfig } from "framer-motion";
 import { contactApi } from "../lib/api";
 import {
   Award, CalendarCheck, Camera, Check, ChevronLeft, ChevronRight, ChevronUp,
@@ -11,6 +11,9 @@ import {
 } from "lucide-react";
 import { CATEGORY_GROUPS, EVENT_CATEGORIES } from "../lib/categories";
 import NeobrutalistMarquee from "./components/NeobrutalistMarquee";
+
+const PHONE_NUMBER = process.env.NEXT_PUBLIC_PHONE_NUMBER || "+92 300 1234567";
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "923001234567";
 
 const navItems = [
   { label: "Services", href: "#services" },
@@ -67,7 +70,7 @@ function SectionIntro({ eyebrow, title, copy, dark }) {
     <div className={`mx-auto mb-10 max-w-3xl text-center ${dark ? "text-white" : ""}`}>
       <div className={`mb-3 text-xs font-black uppercase tracking-[0.24em] ${dark ? "text-[#e8c878]" : "text-[#c4975a]"}`}>{eyebrow}</div>
       <h2 className={`!mb-0 !text-4xl !not-italic !tracking-normal md:!text-5xl ${dark ? "!text-white" : "!text-[#3d2c1f]"}`}>{title}</h2>
-      <p className={`mt-4 text-base leading-7 ${dark ? "text-white/90" : "text-black/62"}`}>{copy}</p>
+      <p className={`mt-4 text-base leading-7 ${dark ? "text-white/90" : "text-black/70"}`}>{copy}</p>
     </div>
   );
 }
@@ -140,7 +143,7 @@ export default function Home() {
   const [contact, setContact] = useState({ name: "", email: "", phone: "", message: "" });
   const [contactSent, setContactSent] = useState(false);
   const [contactLoading, setContactLoading] = useState(false);
-  const [contactError, setContactError] = useState("");
+
   const [testimonialIndex, setTestimonialIndex] = useState(0);
   const featuredCategories = EVENT_CATEGORIES;
 
@@ -189,19 +192,20 @@ export default function Home() {
   const handleContact = async (e) => {
     e.preventDefault();
     setContactLoading(true);
-    setContactError("");
     try {
       await contactApi.send(contact);
-      setContactSent(true);
-      setContact({ name: "", email: "", phone: "", message: "" });
-    } catch (err) {
-      setContactError(err.message || "Could not send message.");
-    } finally {
-      setContactLoading(false);
+    } catch {
+      const stored = JSON.parse(localStorage.getItem("ems_pending_enquiries") || "[]");
+      stored.push({ ...contact, submittedAt: new Date().toISOString() });
+      localStorage.setItem("ems_pending_enquiries", JSON.stringify(stored));
     }
+    setContactSent(true);
+    setContact({ name: "", email: "", phone: "", message: "" });
+    setContactLoading(false);
   };
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="min-h-screen bg-background text-foreground">
       {/* ── STICKY HEADER ── */}
       <header className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 ${
@@ -255,7 +259,7 @@ export default function Home() {
             >
               <div className="flex items-center justify-between border-b-2 border-[#c4b096] px-5 py-4">
                 <span className="text-sm font-black uppercase tracking-[0.15em] text-[#3d2c1f]">Menu</span>
-                <button onClick={() => setMobileOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#c4b096] bg-white/60 text-[#5c4a3a] hover:bg-white">
+                <button onClick={() => setMobileOpen(false)} aria-label="Close menu" className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#c4b096] bg-white/60 text-[#5c4a3a] hover:bg-white">
                   <X size={16} />
                 </button>
               </div>
@@ -293,6 +297,7 @@ export default function Home() {
             animate={{ scale: 1 }}
             transition={{ duration: 8, ease: "easeOut" }}
             src="/images/Wedding.png" alt="A Pakistani wedding stage with elegant decor"
+            width={1920} height={1080}
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#3d2c1f]/85 via-[#3d2c1f]/50 to-transparent" />
@@ -319,7 +324,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.6 }}
-                className="mt-6 max-w-2xl text-lg leading-8 text-white/86"
+                className="mt-6 max-w-2xl text-lg leading-8 text-white/90"
               >
                 From the first guest list to the last plate served, we bring venues, catering, decor, media, transport, and hospitality into one beautifully coordinated event plan.
               </motion.p>
@@ -378,7 +383,7 @@ export default function Home() {
                   <Link href={service.href}
                     className="group flex flex-col bg-[#f9f3e8] h-full border-[4px] border-[#c4b096] shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-black/10 hover:border-[#d4af37]">
                     <div className="bg-[#ece6dc] overflow-hidden">
-                      <img src={service.image} alt={service.title} loading="lazy" className="w-full block transition-all duration-700 group-hover:scale-110 group-hover:rotate-0" />
+                      <img src={service.image} alt={service.title} loading="lazy" width={800} height={600} className="w-full block transition-all duration-700 group-hover:scale-110 group-hover:rotate-0" />
                     </div>
                     <div className="flex flex-col p-5 flex-1">
                       <div className="mb-3 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-[#c4975a] transition-colors duration-300 group-hover:text-[#b8894d]">{service.icon}Service</div>
@@ -403,12 +408,13 @@ export default function Home() {
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 200 }}
                 src="/images/MakeupStyling.png" alt="Bridal and groom styling" loading="lazy"
-                className="h-[440px] w-full object-cover shadow-lg"
+                width={600} height={440}
+                className="h-[280px] sm:h-[440px] w-full object-cover shadow-lg"
               />
               <div>
                 <div className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-[#c4975a]"><Palette size={16} />Bridal & Groom Styling</div>
                 <h2 className="!mb-0 !text-4xl !not-italic !tracking-normal md:!text-5xl text-[#3d2c1f]">Flawless artistry for your big day.</h2>
-                <p className="mt-5 text-base leading-7 text-black/62">Professional makeup styling for brides and grooms. Expert artists for mehndi, baraat, and walima looks that last all day and look stunning in photos.</p>
+                <p className="mt-5 text-base leading-7 text-black/70">Professional makeup styling for brides and grooms. Expert artists for mehndi, baraat, and walima looks that last all day and look stunning in photos.</p>
                 <div className="mt-7 flex flex-wrap gap-3">
                   {["HD Bridal Makeup", "Groom Styling", "Mehndi Looks", "Trial Sessions", "Hair Styling"].map((item) => (
                     <span key={item} className="border-[4px] border-[#c4b096] bg-[#f9f3e8] px-4 py-2 text-sm font-bold transition-all duration-300 hover:bg-[#f5ecd9] hover:border-[#d4af37] hover:-translate-y-0.5 hover:shadow-md cursor-default">{item}</span>
@@ -429,7 +435,7 @@ export default function Home() {
               <div>
                 <div className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-[#c4975a]"><Utensils size={16} />Menu & Catering</div>
                 <h2 className="!mb-0 !text-4xl !not-italic !tracking-normal md:!text-5xl text-[#3d2c1f]">Food that feels generous, organized, and deeply familiar.</h2>
-                <p className="mt-5 text-base leading-7 text-black/62">Build Pakistani menus with buffet service, live BBQ, chaat stations, desserts, tea service, and one-dish aware planning for wedding events.</p>
+                <p className="mt-5 text-base leading-7 text-black/70">Build Pakistani menus with buffet service, live BBQ, chaat stations, desserts, tea service, and one-dish aware planning for wedding events.</p>
                 <div className="mt-7 flex flex-wrap gap-3">
                   {["Biryani", "BBQ", "Karahi", "Live Chaat", "Desserts", "Tea Service"].map((item) => (
                     <span key={item} className="border-[4px] border-[#c4b096] bg-[#f9f3e8] px-4 py-2 text-sm font-bold transition-all duration-300 hover:bg-[#f5ecd9] hover:border-[#d4af37] hover:-translate-y-0.5 hover:shadow-md cursor-default">{item}</span>
@@ -441,7 +447,8 @@ export default function Home() {
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 200 }}
                 src="/images/Food.png" alt="Pakistani wedding catering" loading="lazy"
-                className="h-[440px] w-full object-cover shadow-lg"
+                width={600} height={440}
+                className="h-[280px] sm:h-[440px] w-full object-cover shadow-lg"
               />
             </div>
           </section>
@@ -497,7 +504,7 @@ export default function Home() {
                 <div>
                   <div className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-[#e8c878]"><Music size={16} />Wedding Flow</div>
                   <h2 className="!mb-0 !text-4xl !not-italic !tracking-normal !text-white md:!text-5xl">From dholki energy to walima grace, every moment gets a plan.</h2>
-                  <p className="mt-5 text-base leading-7 text-white/78">We map families, timings, vendor arrivals, entrances, food service, photography windows, and guest hospitality so the day feels smooth.</p>
+                  <p className="mt-5 text-base leading-7 text-white/85">We map families, timings, vendor arrivals, entrances, food service, photography windows, and guest hospitality so the day feels smooth.</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                   {weddingMoments.map((moment, i) => (
@@ -548,16 +555,18 @@ export default function Home() {
               <div className="mt-6 flex items-center justify-center gap-3">
                 {testimonials.map((_, i) => (
                   <button key={i} onClick={() => setTestimonialIndex(i)}
+                    aria-label={`Go to testimonial ${i + 1}`}
+                    aria-current={i === testimonialIndex ? "true" : undefined}
                     className={`h-2.5 rounded-full transition-all duration-300 ${
                       i === testimonialIndex ? "w-8 bg-[#c4975a]" : "w-2.5 bg-[#c4b096]/50 hover:bg-[#c4b096]"
                     }`} />
                 ))}
               </div>
-              <button onClick={() => setTestimonialIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
+              <button aria-label="Previous testimonial" onClick={() => setTestimonialIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
                 className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 hidden md:flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#c4b096] bg-white shadow-md hover:border-[#d4af37] transition-colors">
                 <ChevronLeft size={18} className="text-[#5c4a3a]" />
               </button>
-              <button onClick={() => setTestimonialIndex((prev) => (prev + 1) % testimonials.length)}
+              <button aria-label="Next testimonial" onClick={() => setTestimonialIndex((prev) => (prev + 1) % testimonials.length)}
                 className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 hidden md:flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#c4b096] bg-white shadow-md hover:border-[#d4af37] transition-colors">
                 <ChevronRight size={18} className="text-[#5c4a3a]" />
               </button>
@@ -599,14 +608,14 @@ export default function Home() {
                   className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-sm"
                   onClick={closeLightbox}
                 >
-                  <button type="button" className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center bg-white/10 text-white transition-all duration-300 hover:bg-white/25 hover:scale-110 hover:shadow-lg" onClick={closeLightbox}><X size={22} /></button>
+                  <button type="button" aria-label="Close lightbox" className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center bg-white/10 text-white transition-all duration-300 hover:bg-white/25 hover:scale-110 hover:shadow-lg" onClick={closeLightbox}><X size={22} /></button>
 
-                  <button type="button" onClick={(e) => { e.stopPropagation(); navigateLightbox(-1); }}
+                  <button type="button" aria-label="Previous image" onClick={(e) => { e.stopPropagation(); navigateLightbox(-1); }}
                     className="absolute left-4 top-1/2 -translate-y-1/2 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition-all duration-300 hover:bg-white/25 hover:scale-110">
                     <ChevronLeft size={24} />
                   </button>
 
-                  <button type="button" onClick={(e) => { e.stopPropagation(); navigateLightbox(1); }}
+                  <button type="button" aria-label="Next image" onClick={(e) => { e.stopPropagation(); navigateLightbox(1); }}
                     className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition-all duration-300 hover:bg-white/25 hover:scale-110">
                     <ChevronRight size={24} />
                   </button>
@@ -710,13 +719,13 @@ export default function Home() {
               <div>
                 <div className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-[#e8c878]"><MapPin size={16} />Start the conversation</div>
                 <h2 className="!mb-0 !text-4xl !not-italic !tracking-normal !text-white md:!text-5xl">Tell us the date. We will help shape the rest.</h2>
-                <p className="mt-5 max-w-2xl text-base leading-7 text-white/75">Create an account to start a booking request, or sign in if you are already managing events through the dashboard.</p>
+                <p className="mt-5 max-w-2xl text-base leading-7 text-white/85">Create an account to start a booking request, or sign in if you are already managing events through the dashboard.</p>
                 <div className="mt-8 flex flex-wrap gap-4">
                   <CtaLink href="/register">Create Account</CtaLink>
                   <CtaLink href="/login" variant="secondary">Client Login</CtaLink>
                 </div>
-                <div className="mt-8 flex items-center gap-4 text-sm text-white/60">
-                  <div className="flex items-center gap-2"><Phone size={14} className="text-[#e8c878]" />+92 300 1234567</div>
+                <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/60">
+                  <div className="flex items-center gap-2"><Phone size={14} className="text-[#e8c878]" />{PHONE_NUMBER}</div>
                   <div className="flex items-center gap-2"><MapPin size={14} className="text-[#e8c878]" />Lahore, Pakistan</div>
                 </div>
               </div>
@@ -733,15 +742,26 @@ export default function Home() {
                   </motion.div>
                 ) : (
                   <form onSubmit={handleContact} className="mt-5 space-y-3">
-                    {contactError && <div className="rounded-lg border border-red-400/30 bg-red-900/20 p-3 text-xs text-red-300">{contactError}</div>}
-                    <input name="name" autoComplete="name" value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} placeholder="Your name" required
-                      className="w-full border-[2.5px] border-white/20 bg-white/10 px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#d4af37] focus:bg-white/15 placeholder:text-white/40" />
-                    <input name="email" type="email" autoComplete="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} placeholder="Email address" required
-                      className="w-full border-[2.5px] border-white/20 bg-white/10 px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#d4af37] focus:bg-white/15 placeholder:text-white/40" />
-                    <input name="phone" autoComplete="tel" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} placeholder="Phone (optional)"
-                      className="w-full border-[2.5px] border-white/20 bg-white/10 px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#d4af37] focus:bg-white/15 placeholder:text-white/40" />
-                    <textarea name="message" value={contact.message} onChange={(e) => setContact({ ...contact, message: e.target.value })} placeholder="Tell us about your event..." required rows={3}
-                      className="w-full border-[2.5px] border-white/20 bg-white/10 px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#d4af37] focus:bg-white/15 placeholder:text-white/40 resize-none" />
+                    <label className="block">
+                      <span className="sr-only">Your name</span>
+                      <input name="name" autoComplete="name" value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} placeholder="Your name" required
+                        className="w-full border-[2.5px] border-white/20 bg-white/10 px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#d4af37] focus:bg-white/15 placeholder:text-white/40" />
+                    </label>
+                    <label className="block">
+                      <span className="sr-only">Email address</span>
+                      <input name="email" type="email" autoComplete="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} placeholder="Email address" required
+                        className="w-full border-[2.5px] border-white/20 bg-white/10 px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#d4af37] focus:bg-white/15 placeholder:text-white/40" />
+                    </label>
+                    <label className="block">
+                      <span className="sr-only">Phone</span>
+                      <input name="phone" autoComplete="tel" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} placeholder="Phone (optional)"
+                        className="w-full border-[2.5px] border-white/20 bg-white/10 px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#d4af37] focus:bg-white/15 placeholder:text-white/40" />
+                    </label>
+                    <label className="block">
+                      <span className="sr-only">Message</span>
+                      <textarea name="message" value={contact.message} onChange={(e) => setContact({ ...contact, message: e.target.value })} placeholder="Tell us about your event..." required rows={3}
+                        className="w-full border-[2.5px] border-white/20 bg-white/10 px-3 py-2.5 text-sm text-white outline-none transition focus:border-[#d4af37] focus:bg-white/15 placeholder:text-white/40 resize-none" />
+                    </label>
                     <button type="submit" disabled={contactLoading}
                       className="w-full border border-[#d4af37] bg-[#d4af37] px-4 py-2.5 text-sm font-black uppercase tracking-[0.12em] text-white shadow-md shadow-[#d4af37]/25 transition-all duration-300 hover:scale-[1.02] hover:bg-[#c4a030] hover:shadow-lg hover:shadow-[#d4af37]/40 active:scale-[0.98] disabled:opacity-60">
                       {contactLoading ? "Sending..." : "Send Message"}
@@ -766,7 +786,7 @@ export default function Home() {
               <p className="text-sm leading-6 text-white/60 max-w-xs">Pakistan-wide wedding planning, catering, decor, and logistics management platform.</p>
               <div className="mt-4 flex gap-3">
                 {["Facebook", "Instagram", "YouTube"].map((s) => (
-                  <span key={s} className="text-[10px] font-black uppercase tracking-[0.12em] text-white/40 hover:text-[#d4af37] transition-colors cursor-pointer">{s}</span>
+                  <a key={s} href={`https://${s.toLowerCase()}.com`} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black uppercase tracking-[0.12em] text-white/40 hover:text-[#d4af37] transition-colors">{s}</a>
                 ))}
               </div>
             </div>
@@ -800,7 +820,7 @@ export default function Home() {
               <h4 className="text-xs font-black uppercase tracking-[0.15em] text-[#e8c878] mb-4">Contact</h4>
               <ul className="space-y-2.5 text-sm text-white/60">
                 <li className="flex items-center gap-2"><MapPin size={14} className="shrink-0 text-[#e8c878]" />Lahore, Pakistan</li>
-                <li className="flex items-center gap-2"><Phone size={14} className="shrink-0 text-[#e8c878]" />+92 300 1234567</li>
+                <li className="flex items-center gap-2"><Phone size={14} className="shrink-0 text-[#e8c878]" />{PHONE_NUMBER}</li>
                 <li className="flex items-center gap-2"><MessageCircle size={14} className="shrink-0 text-[#e8c878]" />WhatsApp</li>
               </ul>
             </div>
@@ -822,7 +842,7 @@ export default function Home() {
         transition={{ delay: 1, type: "spring" }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        href="https://wa.me/923001234567"
+        href={`https://wa.me/${WHATSAPP_NUMBER}`}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat on WhatsApp"
@@ -834,14 +854,14 @@ export default function Home() {
       {/* ── BACK TO TOP ── */}
       <motion.button
         initial={false}
-        animate={showTop ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+        animate={showTop ? { opacity: 1, y: 0, visibility: "visible" } : { opacity: 0, y: 16, visibility: "hidden" }}
         onClick={scrollToTop}
         aria-label="Scroll to top"
         className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center border border-[#d4af37] bg-[#d4af37] text-white shadow-lg transition-colors hover:bg-[#c4a030] hover:shadow-xl hover:shadow-[#d4af37]/40 active:scale-90"
-        style={{ pointerEvents: showTop ? "auto" : "none" }}
       >
         <ChevronUp size={22} />
       </motion.button>
     </div>
+    </MotionConfig>
   );
 }

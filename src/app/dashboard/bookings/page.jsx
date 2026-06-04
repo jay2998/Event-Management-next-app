@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { dashboardApi } from "../../../lib/api";
 import { useToast } from "../../components/Toast";
+import { localDB } from "../../../lib/store";
 
 const STATUS_COLORS = {
   pending: "bg-amber-50 text-amber-800 border-amber-200",
@@ -63,8 +64,10 @@ function BookingsContent() {
     try {
       const res = await dashboardApi.bookings();
       setBookings(res?.data?.data || res?.data || []);
-    } catch (err) {
-      setError(err.message || "Failed to load bookings");
+    } catch {
+      const local = localDB.findAll("bookings");
+      setBookings(local?.data?.data || []);
+      setError("Backend offline — showing local data");
     } finally {
       setLoading(false);
     }
@@ -106,9 +109,9 @@ function BookingsContent() {
         payload.items = editingBooking.items;
       }
       if (editingId) {
-        await dashboardApi.updateBooking(editingId, payload);
+        await dashboardApi.updateBooking(editingId, payload).catch(() => localDB.update("bookings", editingId, payload));
       } else {
-        await dashboardApi.createBooking(payload);
+        await dashboardApi.createBooking(payload).catch(() => localDB.create("bookings", payload));
       }
       setShowForm(false);
       loadBookings();
@@ -120,7 +123,7 @@ function BookingsContent() {
 
   const updateStatus = async (id, status) => {
     try {
-      await dashboardApi.updateBookingStatus(id, status);
+      await dashboardApi.updateBookingStatus(id, status).catch(() => localDB.update("bookings", id, { status }));
       loadBookings();
       addToast(`Booking marked as ${status}`, "success");
     } catch (err) {
@@ -131,7 +134,7 @@ function BookingsContent() {
   const cancelBooking = async (id) => {
     if (!confirm("Cancel this booking?")) return;
     try {
-      await dashboardApi.cancelBooking(id);
+      await dashboardApi.cancelBooking(id).catch(() => localDB.delete("bookings", id));
       loadBookings();
       addToast("Booking cancelled", "success");
     } catch (err) {
@@ -181,11 +184,11 @@ function BookingsContent() {
               {search && <button onClick={() => setSearch("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-black/30"><X size={14} /></button>}
             </div>
-            <div className="flex items-center gap-2">
-              <Filter size={14} className="text-black/35" />
+            <div className="flex items-center gap-2 flex-wrap">
+              <Filter size={14} className="text-black/35 shrink-0" />
               {["all", "pending", "confirmed", "completed", "cancelled"].map((s) => (
                 <button key={s} onClick={() => setStatusFilter(s)}
-                  className={`rounded-lg border-[2.5px] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] transition ${
+                  className={`rounded-lg border-[2.5px] px-2 sm:px-3 py-1 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.1em] transition ${
                     statusFilter === s
                       ? "border-[#d4af37] bg-[#fff8dc] text-[#8a6a00]"
                       : "border-[#c4b096] bg-white/60 text-black/50 hover:border-[#d4af37]"

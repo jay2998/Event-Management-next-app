@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { notificationsApi } from "../../lib/api";
 import { hasAccess } from "../../lib/permissions";
+import { useUser, useAuthGuard } from "../../lib/hooks/useUser";
+import { localDB } from "../../lib/store";
 import { ToastProvider } from "../components/Toast";
 import {
   LayoutDashboard, Building2, Car, PackageCheck, Utensils,
@@ -66,7 +68,8 @@ export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [user, setUser] = useState({});
+  const user = useUser();
+  useAuthGuard(router);
   const [expandedSections, setExpandedSections] = useState(() => {
     const init = {};
     NAV_SECTIONS.forEach((s, i) => { init[s.label] = i === 0; });
@@ -78,13 +81,6 @@ export default function DashboardLayout({ children }) {
   const [showRead, setShowRead] = useState(false);
   const [toast, setToast] = useState(null);
   const prevNotifCount = useRef(0);
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem("user");
-      if (raw && raw !== "undefined") setUser(JSON.parse(raw));
-    } catch {}
-  }, []);
 
   useEffect(() => {
     if (user?.role === "customer") {
@@ -114,7 +110,15 @@ export default function DashboardLayout({ children }) {
             return [...newUnread, ...prev];
           });
         }
-      } catch {}
+      } catch {
+        const local = localDB.findAll("notifications");
+        const fetched = local?.data?.data || [];
+        setNotifications((prev) => {
+          const existingIds = new Set(prev.map((n) => n.id || n._id));
+          const newUnread = fetched.filter((n) => !n.read && !existingIds.has(n.id || n._id));
+          return [...newUnread, ...prev];
+        });
+      }
     };
     fetchNotifications();
     const id = setInterval(fetchNotifications, 10000);
@@ -198,7 +202,7 @@ export default function DashboardLayout({ children }) {
           <Link href="/" className="flex h-7 w-7 items-center justify-center rounded-lg border-[2.5px] border-[#c4b096] bg-white/60 text-[#8b7355] transition hover:border-[#C5A059] hover:text-[#C5A059]" title="Back to home">
             <LayoutDashboard size={12} />
           </Link>
-          <button onClick={() => setSidebarOpen(false)} className="flex h-7 w-7 items-center justify-center rounded-lg text-black/40 hover:bg-white/60 lg:hidden">
+          <button onClick={() => setSidebarOpen(false)} className="flex h-9 w-9 items-center justify-center rounded-lg text-black/40 hover:bg-white/60 lg:hidden">
             <X size={16} />
           </button>
         </div>
@@ -209,7 +213,7 @@ export default function DashboardLayout({ children }) {
               {(user.name || "U").charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-extrabold text-[#3d2c1f] truncate leading-tight max-w-[100px]">{user.name || "User"}</div>
+              <div className="text-xs font-extrabold text-[#3d2c1f] truncate leading-tight max-w-[130px]">{user.name || "User"}</div>
               <div className="text-[8px] font-bold uppercase tracking-[0.1em] text-[#8b7355] leading-tight">{user.role || "guest"}</div>
             </div>
           </div>
@@ -297,20 +301,20 @@ export default function DashboardLayout({ children }) {
         <header className="sticky top-0 z-30 border-b-[2.5px] border-[#c4b096] bg-[#F9F7F2]/95 backdrop-blur-md">
           <div className="flex items-center justify-between px-4 py-3 lg:px-6">
             <button onClick={() => setSidebarOpen(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border-[2.5px] border-[#c4b096] bg-white/80 text-[#5c4a3a] transition hover:border-[#C5A059] lg:hidden">
+              className="flex h-10 w-10 items-center justify-center rounded-xl border-[2.5px] border-[#c4b096] bg-white/80 text-[#5c4a3a] transition hover:border-[#C5A059] lg:hidden">
               <Menu size={18} />
             </button>
-            <Link href="/dashboard" className="items-center gap-2 transition-all duration-300 hover:opacity-80 hidden sm:flex">
+            <Link href="/dashboard" className="items-center gap-2 transition-all duration-300 hover:opacity-80 flex">
               <img src="/logo.svg" alt="" className="h-7 w-auto" />
               <span className="text-sm font-bold text-[#3d2c1f]">EventPro</span>
             </Link>
             <div className="flex items-center gap-2">
               <button onClick={handleLogout}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border-[2.5px] border-[#c4b096] bg-white/80 text-[#5c4a3a] transition hover:border-[#C5A059]">
+                className="flex h-10 w-10 items-center justify-center rounded-xl border-[2.5px] border-[#c4b096] bg-white/80 text-[#5c4a3a] transition hover:border-[#C5A059]">
                 <LogOut size={16} />
               </button>
               <button onClick={() => setNotifPanelOpen((p) => !p)}
-                className="relative flex h-9 w-9 items-center justify-center rounded-xl border-[2.5px] border-[#c4b096] bg-white/80 text-[#5c4a3a] transition hover:border-[#C5A059]">
+                className="relative flex h-10 w-10 items-center justify-center rounded-xl border-[2.5px] border-[#c4b096] bg-white/80 text-[#5c4a3a] transition hover:border-[#C5A059]">
                 <Bell size={16} />
                 {unreadCount > 0 && (
                   <span className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-[#C5A059] text-[8px] font-black text-white flex items-center justify-center shadow-sm">
@@ -330,7 +334,7 @@ export default function DashboardLayout({ children }) {
       </div>
 
       {notifPanelOpen && (
-        <div className="fixed right-4 top-16 z-50 w-80 rounded-xl border-[2.5px] border-[#c4b096] bg-[#F9F7F2] shadow-2xl">
+        <div className="fixed right-4 top-14 z-50 w-80 max-w-[calc(100vw-2rem)] rounded-xl border-[2.5px] border-[#c4b096] bg-[#F9F7F2] shadow-2xl">
           <div className="flex items-center justify-between border-b-[2.5px] border-[#c4b096] px-3 py-2.5">
             <span className="text-xs font-black uppercase tracking-[0.1em] text-[#C5A059]">Notifications</span>
             <div className="flex items-center gap-1">

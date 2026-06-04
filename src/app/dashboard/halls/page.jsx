@@ -9,6 +9,7 @@ import {
   ChevronDown, ChevronRight, DollarSign, Lightbulb,
 } from "lucide-react";
 import { venuesApi } from "../../../lib/api";
+import { localDB } from "../../../lib/store";
 
 const CITY_OPTIONS = ["Lahore", "Karachi", "Islamabad", "Faisalabad", "Rawalpindi", "Multan", "Peshawar", "Quetta", "Other"];
 
@@ -62,8 +63,10 @@ export default function VenueManagementPage() {
     try {
       const res = await venuesApi.list();
       setVenues(res?.data?.data || res?.data || []);
-    } catch (err) {
-      setError(err.message || "Failed to load venues");
+    } catch {
+      const local = localDB.findAll("venues");
+      setVenues(local?.data?.data || []);
+      setError("Backend offline — showing local data");
     } finally {
       setLoading(false);
     }
@@ -92,9 +95,9 @@ export default function VenueManagementPage() {
     e.preventDefault();
     try {
       if (editingVenueId) {
-        await venuesApi.update(editingVenueId, venueForm);
+        await venuesApi.update(editingVenueId, venueForm).catch(() => localDB.update("venues", editingVenueId, venueForm));
       } else {
-        await venuesApi.create(venueForm);
+        await venuesApi.create(venueForm).catch(() => localDB.create("venues", { ...venueForm, halls: [] }));
       }
       setShowVenueForm(false);
       loadVenues();
@@ -106,7 +109,7 @@ export default function VenueManagementPage() {
   const deleteVenue = async (id) => {
     if (!confirm("Deactivate this venue?")) return;
     try {
-      await venuesApi.delete(id);
+      await venuesApi.delete(id).catch(() => localDB.delete("venues", id));
       loadVenues();
     } catch (err) {
       alert(err.message || "Failed");
@@ -121,13 +124,20 @@ export default function VenueManagementPage() {
 
   const submitHall = async (e) => {
     e.preventDefault();
+    const hallData = {
+      ...hallForm,
+      id: "h" + Date.now().toString(36),
+      capacityMax: Number(hallForm.capacityMax),
+      capacityMin: Number(hallForm.capacityMin),
+      baseServiceFee: Number(hallForm.baseServiceFee),
+      amenities: hallForm.amenities.split(",").map((s) => s.trim()).filter(Boolean),
+      slots: {},
+    };
     try {
-      await venuesApi.addHall(editingVenueId, {
-        ...hallForm,
-        capacityMax: Number(hallForm.capacityMax),
-        capacityMin: Number(hallForm.capacityMin),
-        baseServiceFee: Number(hallForm.baseServiceFee),
-        amenities: hallForm.amenities.split(",").map((s) => s.trim()).filter(Boolean),
+      await venuesApi.addHall(editingVenueId, hallData).catch(() => {
+        const venue = localDB.findById("venues", editingVenueId);
+        const v = venue?.data?.data;
+        if (v) localDB.update("venues", editingVenueId, { halls: [...(v.halls || []), hallData] });
       });
       setShowHallForm(false);
       loadVenues();
@@ -139,7 +149,11 @@ export default function VenueManagementPage() {
   const deleteHall = async (venueId, hallId) => {
     if (!confirm("Remove this hall?")) return;
     try {
-      await venuesApi.removeHall(venueId, hallId);
+      await venuesApi.removeHall(venueId, hallId).catch(() => {
+        const venue = localDB.findById("venues", venueId);
+        const v = venue?.data?.data;
+        if (v) localDB.update("venues", venueId, { halls: (v.halls || []).filter((h) => (h.id || h._id) !== hallId) });
+      });
       loadVenues();
     } catch (err) {
       alert(err.message || "Failed");
@@ -150,7 +164,20 @@ export default function VenueManagementPage() {
     const statusCycle = { available: "hold", hold: "sold", sold: "available" };
     const nextStatus = statusCycle[currentStatus] || "available";
     try {
-      await venuesApi.setHallSlot(venueId, hallId, { date: selectedDate, slot: selectedSlot, status: nextStatus });
+      await venuesApi.setHallSlot(venueId, hallId, { date: selectedDate, slot: selectedSlot, status: nextStatus }).catch(() => {
+        const venue = localDB.findById("venues", venueId);
+        const v = venue?.data?.data;
+        if (v) {
+          const halls = (v.halls || []).map((h) => {
+            if ((h.id || h._id) !== hallId) return h;
+            const slots = { ...(h.slots || {}) };
+            const dateKey = selectedDate;
+            slots[dateKey] = { ...(slots[dateKey] || {}), [selectedSlot]: nextStatus };
+            return { ...h, slots };
+          });
+          localDB.update("venues", venueId, { halls });
+        }
+      });
       loadVenues();
     } catch (err) {
       alert(err.message || "Failed to update slot");
@@ -162,8 +189,11 @@ export default function VenueManagementPage() {
       const res = await venuesApi.suggestAlternatives({ hallId, date: selectedDate, slot: selectedSlot, city });
       setSuggestions(res?.data?.data || []);
       setShowSuggestions(true);
-    } catch (err) {
-      alert(err.message || "Failed to get suggestions");
+    } catch {
+      const allVenues = localDB.findAll("venues")?.data?.data || [];
+      const altHalls = allVenues.flatMap((v) => (v.halls || []).filter((h) => (h.id || h._id) !== hallId)).slice(0, 3);
+      setSuggestions(altHalls.map((h) => ({ hallName: h.name, venueName: "Local", capacityMin: h.capacityMin, capacityMax: h.capacityMax, baseServiceFee: h.baseServiceFee })));
+      setShowSuggestions(true);
     }
   };
 
@@ -228,13 +258,13 @@ export default function VenueManagementPage() {
                 placeholder="Search venues..."
                 className="w-full rounded-xl border-[2.5px] border-[#c4b096] bg-white/80 pl-9 pr-4 py-2 text-sm outline-none transition focus:border-[#d4af37]" />
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 text-xs font-bold text-black/50">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 text-xs font-bold text-black/50 shrink-0">
                 <Clock size={14} />
                 <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)}
                   className="rounded-lg border-[2.5px] border-[#c4b096] bg-white/80 px-2 py-1.5 text-xs outline-none focus:border-[#d4af37]" />
               </div>
-              <div className="flex rounded-lg border-[2.5px] border-[#c4b096] overflow-hidden">
+              <div className="flex rounded-lg border-[2.5px] border-[#c4b096] overflow-hidden shrink-0">
                 {["afternoon", "evening"].map((s) => (
                   <button key={s} onClick={() => setSelectedSlot(s)}
                     className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] transition ${

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { cateringApi, calculateApi } from "../../../lib/api";
 import { useToast } from "../../components/Toast";
+import { localDB } from "../../../lib/store";
 
 const MENU_CATEGORIES = ["Appetizer", "Main Course", "Rice", "Bread", "Dessert", "Beverage", "Snack", "Other"];
 const MENU_TIERS = [
@@ -87,13 +88,23 @@ export default function CateringPage() {
       if (menuRes.status === "fulfilled") {
         const raw = menuRes.value?.data?.data || menuRes.value?.data?.menu || menuRes.value?.data || [];
         setMenuItems(raw.map((item) => ({ ...item, price: item.basePrice || item.price || 0 })));
+      } else {
+        const local = localDB.findAll("catering");
+        setMenuItems(local?.data?.data || []);
+        setError("Backend offline — showing local data");
       }
       if (ordersRes.status === "fulfilled") {
         setOrders(ordersRes.value?.data?.data || ordersRes.value?.data || []);
+      } else {
+        const local = localDB.findAll("orders");
+        setOrders(local?.data?.data || []);
       }
       if (draftsRes.status === "fulfilled") {
         const d = draftsRes.value?.data?.data || [];
         setDrafts(Array.isArray(d) ? d : []);
+      } else {
+        const local = localDB.findAll("drafts");
+        setDrafts(local?.data?.data || []);
       }
     } catch (err) {
       setError(err.message || "Failed to load data");
@@ -125,9 +136,9 @@ export default function CateringPage() {
     try {
       const payload = { ...form, price: Number(form.price) };
       if (editingId) {
-        await cateringApi.updateMenuItem(editingId, payload);
+        await cateringApi.updateMenuItem(editingId, payload).catch(() => localDB.update("catering", editingId, payload));
       } else {
-        await cateringApi.createMenuItem(payload);
+        await cateringApi.createMenuItem(payload).catch(() => localDB.create("catering", payload));
       }
       setShowForm(false);
       loadData();
@@ -139,7 +150,7 @@ export default function CateringPage() {
 
   const deleteMenuItem = async (id) => {
     try {
-      await cateringApi.deleteMenuItem(id);
+      await cateringApi.deleteMenuItem(id).catch(() => localDB.delete("catering", id));
       loadData();
       addToast("Menu item deleted", "success");
     } catch (err) {
@@ -195,8 +206,10 @@ export default function CateringPage() {
       };
       if (editingDraftId) {
         payload.id = editingDraftId;
+        await cateringApi.saveMenuDraft(payload).catch(() => localDB.update("drafts", editingDraftId, payload));
+      } else {
+        await cateringApi.saveMenuDraft(payload).catch(() => localDB.create("drafts", payload));
       }
-      await cateringApi.saveMenuDraft(payload);
       setShowDraftForm(false);
       loadData();
       addToast(editingDraftId ? "Draft updated" : "Draft saved", "success");
@@ -209,7 +222,7 @@ export default function CateringPage() {
 
   const deleteDraft = async (id) => {
     try {
-      await cateringApi.deleteMenuDraft(id);
+      await cateringApi.deleteMenuDraft(id).catch(() => localDB.delete("drafts", id));
       loadData();
       addToast("Draft deleted", "success");
     } catch (err) {
@@ -290,9 +303,9 @@ export default function CateringPage() {
         menuItems: orderForm.items,
       };
       if (editingOrderId) {
-        await cateringApi.updateOrder(editingOrderId, payload);
+        await cateringApi.updateOrder(editingOrderId, payload).catch(() => localDB.update("orders", editingOrderId, payload));
       } else {
-        await cateringApi.createOrder(payload);
+        await cateringApi.createOrder(payload).catch(() => localDB.create("orders", payload));
       }
       setShowOrderForm(false);
       loadData();
@@ -324,7 +337,7 @@ export default function CateringPage() {
       if (qcForm.temperature) payload.temperature = Number(qcForm.temperature);
       if (qcForm.plating) payload.plating = Number(qcForm.plating);
       if (qcForm.notes) payload.notes = qcForm.notes;
-      await cateringApi.updateQualityCheck(qcOrderId, payload);
+      await cateringApi.updateQualityCheck(qcOrderId, payload).catch(() => localDB.update("orders", qcOrderId, { qualityCheck: payload }));
       setShowQcForm(false);
       setViewOrder(null);
       loadData();
@@ -974,7 +987,7 @@ export default function CateringPage() {
 
                 <div>
                   <label className="text-xs font-bold text-black/60 block mb-2">Menu Tier</label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     {MENU_TIERS.map((tier) => (
                       <button key={tier.key} onClick={() => setCalcInput({ ...calcInput, menuTier: tier.key })}
                         className={`rounded-xl border-[2.5px] p-3 text-left transition ${

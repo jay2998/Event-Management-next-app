@@ -7,6 +7,7 @@ import {
   ArrowLeft, Loader2, Plus, X, ShieldCheck,
 } from "lucide-react";
 import { adminApi } from "../../../lib/api";
+import { localDB } from "../../../lib/store";
 
 const ROLE_COLORS = {
   admin: "bg-purple-50 text-purple-800 border-purple-200",
@@ -35,8 +36,10 @@ export default function UsersAdminPage() {
     try {
       const res = await adminApi.getUsers();
       setUsers(res?.data?.data || res?.data || []);
-    } catch (err) {
-      setError(err.message || "Failed to load users");
+    } catch {
+      const local = localDB.findAll("users");
+      setUsers(local?.data?.data || []);
+      setError("Backend offline — showing local data");
     } finally {
       setLoading(false);
     }
@@ -58,9 +61,9 @@ export default function UsersAdminPage() {
     e.preventDefault();
     try {
       if (editingId) {
-        await adminApi.updateUser(editingId, { name: form.name, email: form.email, phone: form.phone, role: form.role });
+        await adminApi.updateUser(editingId, { name: form.name, email: form.email, phone: form.phone, role: form.role }).catch(() => localDB.update("users", editingId, form));
       } else {
-        await adminApi.createUser(form);
+        await adminApi.createUser(form).catch(() => localDB.create("users", form));
       }
       setShowForm(false);
       loadUsers();
@@ -72,7 +75,7 @@ export default function UsersAdminPage() {
   const deleteUser = async (id) => {
     if (!confirm("Soft-delete this user? They can be restored via the database.")) return;
     try {
-      await adminApi.deleteUser(id);
+      await adminApi.deleteUser(id).catch(() => localDB.delete("users", id));
       loadUsers();
     } catch (err) {
       alert(err.message || "Failed to delete user");

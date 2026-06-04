@@ -14,6 +14,8 @@ import {
   PieChart, Pie, Cell,
 } from "recharts";
 import { dashboardApi, notificationsApi } from "../../lib/api";
+import { useUser, useAuthGuard } from "../../lib/hooks/useUser";
+import { localDB, getBookingsStats } from "../../lib/store";
 
 const currency = new Intl.NumberFormat("en-PK", { style: "currency", currency: "PKR", maximumFractionDigits: 0 });
 
@@ -179,10 +181,10 @@ function BookingStatusBreakdown({ bookings }) {
       {empty ? (
         <div className="flex items-center justify-center pt-6"><ClipboardList size={28} className="text-black/20" /></div>
       ) : (
-        <div className="flex gap-4 pt-3">
+        <div className="flex flex-col sm:flex-row gap-4 pt-3">
           <div className="shrink-0">
             <PieChart width={180} height={180}>
-              <Pie data={data} cx="50%" cy="50%" innerRadius={50} outerRadius={85} dataKey="value" paddingAngle={3} isAnimationActive={false}>
+              <Pie key="pie" data={data} cx="50%" cy="50%" innerRadius={50} outerRadius={85} dataKey="value" paddingAngle={3} isAnimationActive={false}>
                 {data.map((d) => <Cell key={d.name} fill={d.color} />)}
               </Pie>
             </PieChart>
@@ -253,15 +255,15 @@ function RevenueTrend({ bookings, period }) {
         <span className="text-[9px] font-bold text-black/40 capitalize">{period}</span>
       </div>
       {hasData ? (
-        <div className="flex justify-center pt-3">
-          <BarChart data={chartData} width={Math.max(chartData.length * 110, 400)} height={260} margin={{ top: 10, right: 20, bottom: 10, left: 10 }}>
-            <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: "#8b7355" }} />
-            <YAxis hide />
-            <Tooltip
+        <div className="flex justify-center pt-3 overflow-x-auto">
+          <BarChart data={chartData} width={Math.max(chartData.length * 110, Math.min(400, typeof window !== 'undefined' ? window.innerWidth - 80 : 400))} height={260} margin={{ top: 10, right: 20, bottom: 10, left: 10 }}>
+            <XAxis key="x-axis" dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: "#8b7355" }} />
+            <YAxis key="y-axis" hide />
+            <Tooltip key="tooltip"
               contentStyle={{ background: "#f9f3e8", border: "2px solid #c4b096", borderRadius: 8, fontSize: 12, fontWeight: 700 }}
               formatter={(v) => [currency.format(v), "Revenue"]}
               cursor={{ fill: "rgba(196, 151, 90, 0.1)" }} />
-            <Bar dataKey="revenue" radius={[6, 6, 0, 0]} maxBarSize={60} fill="#c4975a" />
+            <Bar key="bar" dataKey="revenue" radius={[6, 6, 0, 0]} maxBarSize={60} fill="#c4975a" />
           </BarChart>
         </div>
       ) : (
@@ -311,7 +313,8 @@ function NotificationsFeed({ notifications }) {
 /* ── Dashboard ── */
 export default function DashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState({});
+  const user = useUser();
+  useAuthGuard(router);
   const [stats, setStats] = useState({});
   const [bookings, setBookings] = useState([]);
   const [halls, setHalls] = useState([]);
@@ -321,14 +324,6 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [currentTime, setCurrentTime] = useState(new Date());
   const [notifications, setNotifications] = useState([]);
-
-  const getUser = () => {
-    try {
-      const raw = window.localStorage.getItem("user");
-      if (!raw || raw === "undefined") return {};
-      return JSON.parse(raw);
-    } catch { return {}; }
-  };
 
   const isCustomer = user.role === "customer";
   const today = new Date();
@@ -359,29 +354,28 @@ export default function DashboardPage() {
   }, [filteredBookings]);
 
   useEffect(() => {
-    const token = window.localStorage.getItem("token");
-    if (!token) { router.replace("/login"); return; }
-    setUser(getUser());
-
     const load = async () => {
       setLoading(true);
       setError("");
+      let usedLocal = false;
       const [bRes, sRes, hRes, vRes, rRes] = await Promise.allSettled([
-        dashboardApi.bookings(), dashboardApi.stats().catch(() => ({ data: { data: {} } })),
-        dashboardApi.halls().catch(() => ({ data: { data: [] } })),
-        dashboardApi.vehicles().catch(() => ({ data: { data: [] } })),
-        dashboardApi.rentals().catch(() => ({ data: { data: [] } })),
+        dashboardApi.bookings().catch(() => { usedLocal = true; return localDB.findAll("bookings"); }),
+        dashboardApi.stats().catch(() => ({ data: { data: {} } })),
+        dashboardApi.halls().catch(() => { usedLocal = true; return localDB.findAll("venues"); }),
+        dashboardApi.vehicles().catch(() => { usedLocal = true; return localDB.findAll("vehicles"); }),
+        dashboardApi.rentals().catch(() => { usedLocal = true; return localDB.findAll("rentals"); }),
       ]);
-      const bData = bRes.status === "fulfilled" ? safeList(bRes.value) : [];
-      const sData = sRes.status === "fulfilled" ? (sRes.value?.data?.data || sRes.value?.data || {}) : {};
+      const bData = safeList(bRes.value);
       setBookings(bData);
-      setStats(statFallback(bData, sData));
-      setHalls(hRes.status === "fulfilled" ? safeList(hRes.value) : []);
-      setVehicles(vRes.status === "fulfilled" ? safeList(vRes.value) : []);
-      setRentals(rRes.status === "fulfilled" ? safeList(rRes.value) : []);
-      if ([bRes, sRes, hRes, vRes, rRes].some((r) => r.status === "rejected")) {
-        setError("Some data could not be loaded. Partial dashboard shown.");
-      }
+      setStats(getBookingsStats(bData));
+      setHalls(
+        safeList(hRes.value).length > 0
+          ? safeList(hRes.value)
+          : (hRes.value?.data?.data || []).flatMap((v) => v.halls || [])
+      );
+      setVehicles(safeList(vRes.value));
+      setRentals(safeList(rRes.value));
+      if (usedLocal) setError("Backend offline — showing local data. Changes will be saved locally.");
       setLoading(false);
     };
     load();
@@ -400,7 +394,10 @@ export default function DashboardPage() {
           const fetched = res.data.data || [];
           setNotifications(fetched.filter((n) => !n.read));
         }
-      } catch {}
+      } catch {
+        const local = localDB.findAll("notifications");
+        setNotifications((local?.data?.data || []).filter((n) => !n.read));
+      }
     };
     fetchNotifications();
     const id = setInterval(fetchNotifications, 15000);
@@ -430,12 +427,20 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-[1600px] flex flex-col gap-6">
 
         {/* ═══════ COMPACT HEADER ═══════ */}
-        <div className="flex shrink-0 items-center justify-between rounded-xl bg-gradient-to-r from-[#4a3528] to-[#3d2c1f] px-8 py-5 text-white shadow-lg">
+        <div className="flex shrink-0 items-center justify-between rounded-xl bg-gradient-to-r from-[#4a3528] to-[#3d2c1f] px-4 sm:px-8 py-5 text-white shadow-lg">
           <div className="flex items-center gap-6 min-w-0">
             <span className="h-3 w-3 shrink-0 rounded-full bg-[#d4af37]" />
             <div className="min-w-0">
-              <span className="text-xl font-black leading-tight">{greeting}, {user.name?.split(" ")[0] || "there"}</span>
-              <span className="ml-4 text-sm text-[#e8c878]/80">{!isCustomer ? `${stats.totalBookings || 0} total bookings` : "Guest Portal"}</span>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-0 sm:gap-4">
+                <span className="text-xl font-black leading-tight">{greeting}, {user.name?.split(" ")[0] || "there"}</span>
+                <span className="text-sm text-[#e8c878]/80">{!isCustomer ? `${stats.totalBookings || 0} total bookings` : "Guest Portal"}</span>
+              </div>
+              {!isCustomer && (
+                <div className="flex sm:hidden items-center gap-2 mt-1">
+                  {todayEvents.length > 0 && <span className="rounded-full bg-[#d4af37]/20 px-2 py-0.5 text-[10px] font-bold text-[#e8c878]">{todayEvents.length} today</span>}
+                  <span className="text-[10px] text-[#e8c878]/60">{(stats.totalRevenue || 0).toLocaleString()} PKR</span>
+                </div>
+              )}
             </div>
             {!isCustomer && (
               <div className="hidden sm:flex items-center gap-4 ml-4">
@@ -444,9 +449,9 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
-          <div className="flex items-center gap-3 text-right shrink-0">
-            <div className="text-sm text-[#e8c878]/70 font-bold">{today.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" })}</div>
-            <div className="hidden sm:block text-sm text-[#d4af37] font-bold ml-2">{currentTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</div>
+          <div className="flex items-center gap-1 sm:gap-3 text-right shrink-0">
+            <div className="text-[10px] sm:text-sm text-[#e8c878]/70 font-bold">{today.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" })}</div>
+            <div className="text-[10px] sm:text-sm text-[#d4af37] font-bold">{currentTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</div>
           </div>
         </div>
 
@@ -460,7 +465,7 @@ export default function DashboardPage() {
         {/* ═══════ STATS + PERIOD FILTER ═══════ */}
         {!isCustomer && (
           <div className="shrink-0 flex flex-wrap items-center gap-6">
-            <div className="flex-1 grid grid-cols-4 gap-6 min-w-0">
+            <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 min-w-0">
               <StatCard title="Volume"   value={filteredStats.totalBookings || 0}       icon={<ClipboardList size={24} />} />
               <StatCard title="Confirmed" value={filteredStats.confirmedBookings || 0}    icon={<Check size={24} />} />
               <StatCard title="Pending"  value={filteredStats.pendingBookings || 0}      icon={<Clock size={24} />} />
@@ -469,7 +474,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 shrink-0">
               {["daily", "weekly", "monthly", "yearly"].map((p) => (
                 <button key={p} onClick={() => setPeriod(p)}
-                  className={`rounded-xl border-2 px-6 py-3 text-sm font-black uppercase tracking-[0.1em] transition ${
+                  className={`rounded-xl border-2 px-3 sm:px-6 py-2 sm:py-3 text-[11px] sm:text-sm font-black uppercase tracking-[0.1em] transition ${
                     period === p
                       ? "border-[#d4af37] bg-[#fff8dc] text-[#8a6a00]"
                       : "border-[#c4b096]/60 bg-white/60 text-black/50 hover:border-[#d4af37] hover:text-[#3d2c1f]"
@@ -483,7 +488,7 @@ export default function DashboardPage() {
 
         {/* ═══════ MAIN GRID: fill remaining space ═══════ */}
         {!isCustomer ? (
-          <div className="grid gap-6" style={{ gridTemplateColumns: "1fr 1.8fr 1.8fr 360px", gridTemplateRows: "auto" }}>
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-[1fr_1.8fr_1.8fr_360px]">
             {/* Col 1: PieChart */}
             <BookingStatusBreakdown bookings={bookings} />
 
