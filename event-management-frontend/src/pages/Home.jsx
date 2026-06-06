@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView, AnimatePresence, MotionConfig } from "framer-motion";
-import { contactApi } from "../lib/api";
 import {
   Award, CalendarCheck, Camera, Check, ChevronLeft, ChevronRight, ChevronUp,
   Flower2, MapPin, Menu, MessageCircle, Music, Palette, Phone, ShieldCheck,
@@ -60,7 +59,11 @@ function CtaLink({ href, children, variant = "primary" }) {
   const base = "inline-flex items-center justify-center gap-2 border px-5 py-3 text-sm font-black uppercase tracking-[0.14em] transition-all duration-300";
   const primary = "border-[#c4975a] bg-[#c4975a] text-white shadow-md shadow-[#c4975a]/25 hover:scale-[1.04] hover:bg-[#b8894d] hover:shadow-lg hover:shadow-[#c4975a]/40 hover:-translate-y-0.5 active:scale-[0.98]";
   const secondary = "border-white/70 bg-white/10 text-white shadow-md shadow-black/10 hover:scale-[1.04] hover:bg-white hover:text-[#3d2c1f] hover:shadow-lg hover:shadow-white/20 hover:-translate-y-0.5 active:scale-[0.98]";
-  return <Link to={href} className={`${base} ${variant === "primary" ? primary : secondary}`}>{children}<ChevronRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5" /></Link>;
+  const classes = `${base} ${variant === "primary" ? primary : secondary}`;
+  if (href.startsWith("#")) {
+    return <a href={href} className={classes}>{children}<ChevronRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5" /></a>;
+  }
+  return <Link to={href} className={classes}>{children}<ChevronRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5" /></Link>;
 }
 
 function SectionIntro({ eyebrow, title, copy, dark }) {
@@ -138,10 +141,7 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(null);
-
-
   const [testimonialIndex, setTestimonialIndex] = useState(0);
-  const featuredCategories = EVENT_CATEGORIES;
 
   useEffect(() => {
     const onScroll = () => {
