@@ -5,12 +5,14 @@ const getStoredToken = () => {
   return window.localStorage.getItem("token");
 };
 
-const redirectToLogin = () => {
+// Clear auth state — called externally by components when they detect a 401
+const clearAuth = () => {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem("token");
   window.localStorage.removeItem("user");
-  window.location.href = "/login";
 };
+
+export { clearAuth };
 
 const parseResponse = async (response) => {
   const contentType = response.headers.get("content-type") || "";
@@ -54,7 +56,6 @@ export const api = {
 
       return await parseResponse(response);
     } catch (error) {
-      if (error.status === 401) redirectToLogin();
       throw error;
     }
   },
