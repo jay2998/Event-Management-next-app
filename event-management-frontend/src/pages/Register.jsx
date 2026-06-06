@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import ShadowPopButton from "../components/ShadowPopButton";
-import { User, Mail, Phone, Lock, Loader2 } from "lucide-react";
+import { User, Mail, Phone, Lock, Loader2, Eye, EyeOff } from "lucide-react";
 import { authApi } from "../lib/api";
 import { localDB } from "../lib/store";
 
@@ -11,6 +11,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -106,16 +107,22 @@ export default function RegisterPage() {
 
             <label className="block" htmlFor="reg-password">
               <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-black/60"><Lock size={14} className="text-[#b4975a]" /> Password</span>
-              <input
-                id="reg-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                type="password"
-                autoComplete="new-password"
-                disabled={loading}
-                className="mt-1 w-full border-[2.5px] border-[#e8e0d2] bg-white px-2.5 py-1.5 text-sm text-[#3d2c1f] outline-none transition-all duration-300 focus:border-[#d4af37] focus:shadow-[0_0_0_3px_rgba(212,175,55,0.1)] placeholder:text-black/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                required
-              />
+              <div className="relative mt-1">
+                <input
+                  id="reg-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  disabled={loading}
+                  className="w-full border-[2.5px] border-[#e8e0d2] bg-white px-2.5 py-1.5 pr-10 text-sm text-[#3d2c1f] outline-none transition-all duration-300 focus:border-[#d4af37] focus:shadow-[0_0_0_3px_rgba(212,175,55,0.1)] placeholder:text-black/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                  required
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-black/40 hover:text-black/70 transition-colors">
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </label>
 
             <ShadowPopButton variant="primary" type="submit" disabled={loading}>

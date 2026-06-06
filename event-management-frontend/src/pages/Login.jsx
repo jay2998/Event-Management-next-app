@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Loader2, Mail, Lock, ShieldCheck, Store, User } from "lucide-react";
+import { Loader2, Mail, Lock, ShieldCheck, Store, Eye, EyeOff } from "lucide-react";
 import { authApi } from "../lib/api";
 import { localDB } from "../lib/store";
 
 const ROLES = [
   { key: "admin", label: "Admin", icon: <ShieldCheck size={16} />, desc: "Full system access, user management, all bookings" },
   { key: "vendor", label: "Vendor", icon: <Store size={16} />, desc: "Service fulfillment, inventory, order management" },
-  { key: "customer", label: "Customer", icon: <User size={16} />, desc: "My bookings, event planning, invoices" },
 ];
 
 export default function LoginPage() {
@@ -15,6 +14,7 @@ export default function LoginPage() {
   const [role, setRole] = useState("admin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -71,7 +71,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <div className="mt-5 grid grid-cols-3 gap-2">
+          <div className="mt-5 grid grid-cols-2 gap-2">
             {ROLES.map((r) => (
               <button
                 key={r.key}
@@ -118,16 +118,22 @@ export default function LoginPage() {
                 <Lock size={14} className="text-[#c4975a]" />
                 Password
               </span>
-              <input
-                id="login-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                type="password"
-                autoComplete="current-password"
-                required
-                className="mt-1.5 w-full border-[2.5px] border-[#e8e0d2] bg-white px-2.5 py-1.5 text-sm text-[#3d2c1f] outline-none transition-all duration-300 focus:border-[#d4af37] focus:shadow-[0_0_0_3px_rgba(212,175,55,0.1)] placeholder:text-black/30"
-                placeholder="••••••••"
-              />
+              <div className="relative mt-1.5">
+                <input
+                  id="login-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  required
+                  className="w-full border-[2.5px] border-[#e8e0d2] bg-white px-2.5 py-1.5 pr-10 text-sm text-[#3d2c1f] outline-none transition-all duration-300 focus:border-[#d4af37] focus:shadow-[0_0_0_3px_rgba(212,175,55,0.1)] placeholder:text-black/30"
+                  placeholder="••••••••"
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-black/40 hover:text-black/70 transition-colors">
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </label>
 
             <button

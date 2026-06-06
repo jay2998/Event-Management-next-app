@@ -640,7 +640,7 @@ export default function Home() {
                   >
                     <h3 className="!mb-0 !text-xl !not-italic !tracking-normal">{group}</h3>
                     <div className="mt-4 flex flex-wrap gap-2">
-                      {featuredCategories.filter((c) => c.group === group).map((category) => (
+                      {EVENT_CATEGORIES.filter((c) => c.group === group).map((category) => (
                         <Link key={category.key} to={`/bookings?category=${category.key}`}
                           className="border-[4px] border-[#c4b096] bg-[#f9f3e8] px-3 py-2 text-xs font-bold text-black/70 transition-all duration-300 hover:bg-[#f5ecd9] hover:border-[#d4af37] hover:text-[#8a6a00] hover:-translate-y-0.5 hover:shadow-md active:scale-95">
                           {category.label}
